@@ -1,0 +1,8 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kafka-cluster-admin-role
+rules:
+- apiGroups: ["kafka.io"]
+  resources: ["topics/test/abc"]
+  verbs: ["create", "delete"]
