@@ -1,0 +1,14 @@
+apiVersion: apis.kcp.dev/v1alpha1
+kind: APIExport
+metadata:
+  name: data.my.domain
+spec:
+  latestResourceSchemas:
+    - today.widgets.data.my.domain
+  permissionClaims:
+    - group: ""
+      resource: "secrets"
+    - group: ""
+      resource: "configmaps"
+    - group: ""
+      resource: "namespaces"
