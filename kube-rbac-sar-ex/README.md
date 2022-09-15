@@ -3,7 +3,7 @@
 This experiment is try a SAR for a service account using KCP
 
  # Create Role
-`kubectl create -f kakfa_clusteradmin_role.yaml`
+`kubectl create -f kafka_clusteradmin_role.yaml`
 
 # Create Service account
 `kubectl create -f sa-kafka-client-1.yaml`
@@ -16,7 +16,7 @@ It should return
 ``` allowed: false``` - Since there is no rolebinding at this stage
 
 # Create Role Binding 
-`kubectl create -f kakfa_clusteradmin_rolebinding.yaml`
+`kubectl create -f kafka_clusteradmin_rolebinding.yaml`
 
 # Try subject access review again
 Execute the sar using sar.sh
