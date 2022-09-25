@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: telemetry-consumer
+  clusterName: telemetry
+rules:
+- apiGroups:
+  - apis.kcp.dev
+  resources:
+  - apiexports
+  resourceNames:
+  - kafka.telemetry
+  verbs:
+  - bind
