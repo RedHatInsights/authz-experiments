@@ -1,5 +1,5 @@
-kubectl kcp workspace create aspian --enter --ignore-existing
 kubectl apply -f aspian/aspian-employees.yaml
+kubectl kcp workspace create aspian --enter --ignore-existing
 kubectl apply -f aspian/observability-team.yaml
 
 kubectl kcp workspace create telemetry --enter --ignore-existing
