@@ -1,0 +1,13 @@
+apiVersion: apis.kcp.dev/v1alpha1
+kind: APIBinding
+metadata:
+  name: kafka.mas
+spec:
+  reference:
+    workspace:
+      path: root:redhat:managed-kafka
+      exportName: kafka.mas
+  acceptedPermissionClaims:
+    - resource: "secrets"
+    - resource: "configmaps"
+    - resource: "namespaces"
