@@ -7,10 +7,11 @@ Setup
     * Start from the service-provider-controlled-binding folder as your working directory
     * Run: `kcp start --token-auth-file=tokens`
         * The tokens file allows us to log in as different users described in that file
-1. In another terminal, navigate to the root workspace: `kubectl kcp workspace root`
-    * If you have a workspace named 'aspian' in your root, see the note on the next item
+1. Switch to another terminal or tab
+1. Run `export KUBECONFIG=.kcp/admin.kubeconfig`
+    * This will configure kubectl to talk to the new KCP instance for this terminal
+1. Navigate to the root workspace: `kubectl kcp workspace root`
 1. Run: `./setup.sh`
-    * Note: This will create a workspace in your root called 'aspian' - if you don't want this (ex: you already have a workspace named aspian that you want to keep), you can update the name of the org workspace on line 1 of setup.sh and 12 of aspian-employees.yaml
 1. Your current workspace should be root:aspian
 
 That created a miniature Aspian organization such that Alex is an employee of Aspian and a member of team observability, and team telemetry exports a Kafka service for which they've created a telemetry-consumers role in their workspace to control who can bind it.
