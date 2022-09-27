@@ -33,7 +33,9 @@ kubectl apply -f aspian/observability/kafka-binding.yaml --token aidan
 ..which should succeed.
 
 ## APIBinding Relationships Across Tenants
-If you now navigate to the telemetry workspace and try to bind the managed kafka instance as Alex, it should fail due to no authorization. (Currently, it fails due to hierarchy, but this has been fixed in a newer KCP)
+!! Note: This experiment requires latest KCP unstable !!
+
+If you now navigate to the telemetry workspace and try to bind the managed kafka instance as Alex, it should fail due to no authorization.
 
 ```
 kubectl kcp workspace root:aspian:telemetry
@@ -49,7 +51,6 @@ kubectl apply -f redhat/managed-kafka/kafka-consumers.yaml
 kubectl kcp workspace root:aspian:telemetry
 kubectl apply -f aspian/telemetry/kafka-binding.yaml --token alex
 ```
-(Note: due to previous error, this is currently untested)
 
 # Further Experimentation
 The goal of this exercise was to set up a known-good lab based on KCP's documentation which could then serve as a foundation for testing variations on it, including webhook and custom authorizers.
