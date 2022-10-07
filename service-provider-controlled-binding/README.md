@@ -32,7 +32,7 @@ kubectl apply -f aspian/observability/kafka-binding.yaml --token aidan
 ```
 ..which should succeed.
 
-## APIBinding Relationships Across Tenants
+## APIBinding Relationships Across Tenants (RBAC)
 !! Note: This experiment requires latest KCP unstable !!
 
 If you now navigate to the telemetry workspace and try to bind the managed kafka instance as Alex, it should fail due to no authorization.
@@ -51,6 +51,51 @@ kubectl apply -f redhat/managed-kafka/kafka-consumers.yaml
 kubectl kcp workspace root:aspian:telemetry
 kubectl apply -f aspian/telemetry/kafka-binding.yaml --token alex
 ```
+## APIBinding Relationships Across Tenants (Custom)
+!! Note: This experiment requires a custom build of KCP. See: https://github.com/wscalf/kcp-experiments/tree/resource-configured-custom-authorizer !!
 
+!! Note: This experiment assumes the previous one was *not* performed. You can stop KCP, run `rm -rf .kcp`, start KCP back up, and re-run `./setup.sh` to hard-reset your experimental environment, if needed. !!
+
+As before, if you navigate to the telemetry workspace and try to bind the managed kafka instance as Alex, it should fail due to no authorization.
+
+```
+kubectl kcp workspace root:aspian:telemetry
+kubectl apply -f aspian/telemetry/kafka-binding.yaml --token alex
+```
+
+As admin, navigate to the managed kafka org and create an authzconfig custom resource that grants members of org 123 permission to bind APIs, then try again:
+
+```
+kubectl kcp workspace root:redhat:managed-kafka
+kubectl apply -f redhat/managed-kafka/authz-config.yaml
+
+kubectl kcp workspace root:aspian:telemetry
+kubectl apply -f aspian/telemetry/kafka-binding.yaml --token alex
+```
+
+..And it should succeed. However, because the authzconfig object exists in the managed-kafka workspace, it only applies to that workspace and does not allow users to bind APIs hosted elsewhere. For example:
+
+```
+kubectl kcp workspace root:aspian:observability
+kubectl apply -f aspian/observability/kafka-binding.yaml --token aidan
+```
+
+..will fail due to not authorization. And Aidan can be granted permission to bind to telemetry's Kafka API either by using RBAC as before (to show the systems work in parallel)
+```
+kubectl kcp workspace root:aspian:telemetry
+kubectl apply -f aspian/telemetry/telemetry-consumers-pergroup.yaml
+
+kubectl kcp workspace root:aspian:observability
+kubectl apply -f aspian/observability/kafka-binding.yaml --token aidan
+```
+
+..OR by creating an authzconfig in the telemetry workspace that specifies the 123 orgId (for brevity, we can use the same YAML as before in a different workspace)
+```
+kubectl kcp workspace root:aspian:telemetry
+kubectl apply -f redhat/managed-kafka/authz-config.yaml
+
+kubectl kcp workspace root:aspian:observability
+kubectl apply -f aspian/observability/kafka-binding.yaml --token aidan
+```
 # Further Experimentation
 The goal of this exercise was to set up a known-good lab based on KCP's documentation which could then serve as a foundation for testing variations on it, including webhook and custom authorizers.
