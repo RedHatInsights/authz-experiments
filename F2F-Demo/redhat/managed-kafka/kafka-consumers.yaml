@@ -1,0 +1,25 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kafka-consumer
+rules:
+- apiGroups:
+  - apis.kcp.dev
+  resources:
+  - apiexports
+  resourceNames:
+  - kafka.mas
+  verbs:
+  - bind
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kafka-consumers
+subjects:
+- kind: Group
+  name: telemetry
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kafka-consumer

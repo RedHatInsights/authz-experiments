@@ -1,0 +1,13 @@
+apiVersion: apis.kcp.dev/v1alpha1
+kind: APIBinding
+metadata:
+  name: kafka.telemetry
+spec:
+  reference:
+    workspace:
+      path: root:aspian:telemetry
+      exportName: kafka.telemetry
+  acceptedPermissionClaims:
+    - resource: "secrets"
+    - resource: "configmaps"
+    - resource: "namespaces"

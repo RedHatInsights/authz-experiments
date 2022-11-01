@@ -1,0 +1,27 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: telemetry-member
+  clusterName: aspian
+rules:
+- apiGroups:
+  - tenancy.kcp.dev
+  resources:
+  - workspaces/content
+  resourceNames:
+  - telemetry
+  verbs:
+  - admin
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: telemetry-member
+  clusterName: aspian
+subjects:
+- kind: Group
+  name: telemetry
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: telemetry-member
