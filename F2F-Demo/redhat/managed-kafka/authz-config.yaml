@@ -1,0 +1,6 @@
+apiVersion: "stable.redhat.com/v1"
+kind: AuthzConfig
+metadata:
+  name: kafka-subscribers
+spec:
+  orgId: "123"
