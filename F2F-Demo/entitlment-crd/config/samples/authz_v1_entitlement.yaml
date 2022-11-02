@@ -1,0 +1,12 @@
+apiVersion: authz.authz/v1
+kind: Entitlement
+metadata:
+  labels:
+    app.kubernetes.io/name: entitlement
+    app.kubernetes.io/instance: entitlement-sample
+    app.kubernetes.io/part-of: entitlment-crd
+    app.kuberentes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: entitlment-crd
+  name: entitlement-sample
+spec:
+

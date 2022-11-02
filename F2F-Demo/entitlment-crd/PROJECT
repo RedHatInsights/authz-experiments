@@ -1,0 +1,16 @@
+domain: authz
+layout:
+- go.kubebuilder.io/v4-alpha
+projectName: entitlment-crd
+repo: entitlement
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: authz
+  group: authz
+  kind: Entitlement
+  path: entitlement/api/v1
+  version: v1
+version: "3"
