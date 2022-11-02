@@ -1,7 +1,7 @@
 echo "Start kcp ..."  
 read kubeconfig
 
-export KUBECONFIG={$kubeconfig}
+#export KUBECONFIG={$kubeconfig}
 
 kubectl kcp workspace root
 

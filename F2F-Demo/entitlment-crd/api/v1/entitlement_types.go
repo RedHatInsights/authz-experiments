@@ -29,7 +29,7 @@ type EntitlementSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	Service    string  `json:"service,omitempty"` // Appstudio
-	QuotaItems []Quota `json:"quotaitems"`
+	QuotaItems []Quota `json:"quotaItems"`
 }
 
 type Quota struct {

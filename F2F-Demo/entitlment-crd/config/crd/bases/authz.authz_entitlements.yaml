@@ -35,7 +35,7 @@ spec:
           spec:
             description: EntitlementSpec defines the desired state of Entitlement
             properties:
-              quotaitems:
+              quotaItems:
                 items:
                   properties:
                     limits:
@@ -45,11 +45,9 @@ spec:
                   type: object
                 type: array
               service:
-                description: Foo is an example field of Entitlement. Edit entitlement_types.go
-                  to remove/update
                 type: string
             required:
-            - quotaitems
+            - quotaItems
             type: object
           status:
             description: EntitlementStatus defines the observed state of Entitlement
