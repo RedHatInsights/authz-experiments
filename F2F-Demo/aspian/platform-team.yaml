@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: team-member
+  name: platform-member
   clusterName: aspian
 rules:
 - apiGroups:
@@ -9,14 +9,14 @@ rules:
   resources:
   - workspaces/content
   resourceNames:
-  - team
+  - platform
   verbs:
   - admin
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: team-members
+  name: platform-members
   clusterName: aspian
 subjects:
 - kind: Group
@@ -24,4 +24,4 @@ subjects:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: team-member
+  name: platform-member

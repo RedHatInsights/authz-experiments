@@ -1,0 +1,5 @@
+apiVersion: hacbs.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: platform-pipeline-2
+spec:
