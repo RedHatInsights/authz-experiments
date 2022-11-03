@@ -20,15 +20,18 @@ echo "Setting up the environment"
 echo "Setting up services workspaces ..."
 kubectl kcp workspace root
 
-kubectl kcp workspace create redhat --enter --ignore-existing
+kubectl kcp workspace create redhat --ignore-existing
+kubectl kcp workspace redhat
 
-kubectl kcp workspace create appstudio --enter --ignore-existing
+kubectl kcp workspace create appstudio --ignore-existing
+kubectl kcp workspace appstudio
 kubectl apply -f redhat/appstudio/apiresourceschema-pipelines.appstudio.yaml
 show_yaml "redhat/appstudio/appstudio-export.yaml"
 kubectl apply -f redhat/appstudio/appstudio-export.yaml
 kubectl kcp workspace ..
 
-kubectl kcp workspace create hacbs --enter --ignore-existing
+kubectl kcp workspace create hacbs --ignore-existing
+kubectl kcp workspace hacbs
 kubectl apply -f redhat/hacbs/apiresourceschema-pipelines.hacbs.yaml
 show_yaml "redhat/hacbs/hacbs-export.yaml"
 kubectl apply -f redhat/hacbs/hacbs-export.yaml
