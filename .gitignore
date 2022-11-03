@@ -19,3 +19,5 @@
 
 #Mac specific Stuff
 .DS_Store
+
+.idea/*

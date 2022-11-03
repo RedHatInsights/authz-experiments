@@ -1,8 +1,8 @@
 apiVersion: apis.kcp.dev/v1alpha1
 kind: APIExport
 metadata:
-  name: hacbs
+  name: appstudio
 spec:
   latestResourceSchemas:
-    - v221103-4c8e4067.pipelines.hacbs.dev
+    - v221103-4c8e4067.apps.appstudio.dev
 status: {}

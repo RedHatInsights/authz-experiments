@@ -11,7 +11,7 @@ show_yaml() {
 }
 
 #shellcheck source=demo-magic.sh
-. demo-magic.sh
+source ./demo-magic.sh
 clear 
 
 p "Start kcp ..."
@@ -21,8 +21,15 @@ echo "Setting up services workspaces ..."
 kubectl kcp workspace root
 
 kubectl kcp workspace create redhat --enter --ignore-existing
-kubectl kcp workspace create appstudio --ignore-existing
+
+kubectl kcp workspace create appstudio --enter --ignore-existing
+kubectl apply -f redhat/appstudio/apiresourceschema-pipelines.appstudio.yaml
+show_yaml "redhat/appstudio/appstudio-export.yaml"
+kubectl apply -f redhat/appstudio/appstudio-export.yaml
+kubectl kcp workspace ..
+
 kubectl kcp workspace create hacbs --enter --ignore-existing
+kubectl apply -f redhat/hacbs/apiresourceschema-pipelines.hacbs.yaml
 show_yaml "redhat/hacbs/hacbs-export.yaml"
 kubectl apply -f redhat/hacbs/hacbs-export.yaml
 
