@@ -1,0 +1,25 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: bspian-employee
+rules:
+- apiGroups:
+  - tenancy.kcp.dev
+  resources:
+  - workspaces/content
+  resourceNames:
+  - bspian
+  verbs:
+  - access
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bspian-employees
+subjects:
+- kind: Group
+  name: org/bspian
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: bspian-employee

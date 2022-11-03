@@ -1,0 +1,5 @@
+apiVersion: appstudio.dev/v1alpha1
+kind: App
+metadata:
+  name: platform-appstudio-2
+spec:

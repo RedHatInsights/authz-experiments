@@ -1,0 +1,9 @@
+apiVersion: apis.kcp.dev/v1alpha1
+kind: Entitlement
+metadata:
+  name: hacbs
+spec:
+  service: hacbs
+  quotaItems:
+    - resource: instance
+      limits: "1"

@@ -40,6 +40,7 @@ echo "Setting up Users/Consumers workspaces ..."
 
 kubectl kcp workspace root
 kubectl apply -f aspian/aspian-employees.yaml
+kubectl apply -f bspian/bspian-employees.yaml
 kubectl kcp workspace create aspian --ignore-existing
 kubectl kcp workspace aspian
 kubectl apply -f aspian/hacbs-entitlement.yaml
@@ -48,7 +49,13 @@ kubectl kcp workspace create platform --ignore-existing
 kubectl kcp workspace ..
 
 kubectl kcp workspace create bspian --ignore-existing
+kubectl kcp workspace bspian
+kubectl apply -f bspian/appstudio-entitlement.yaml
+kubectl apply -f bspian/platform-team.yaml
+kubectl kcp workspace create platform --ignore-existing
+kubectl kcp workspace ..
 
+### Aspain part ####
 echo ""
 echo "Abigail gives access to team 'platform', part of aspian org in workspace called platform for HACBS"
 echo "Aspian is entitled to HACBS and Abigail binds the API to the platform workspace"
@@ -91,3 +98,38 @@ show_yaml aspian/appstudio-entitlement.yaml
 echo "Let's give it a try."
 pe "kubectl create -f aspian/appstudio-entitlement.yaml --token abigail"
 echo "We should have an error here. Entitlement objects are protected from modification by normal users"
+
+
+### Bspain part ######
+echo ""
+echo "Ben gives access to team 'platform', part of bspian org in workspace called platform for App-Studio"
+echo "Bspian is entitled to App-Studio and Ben binds the API to the platform workspace"
+echo ""
+
+show_yaml "./bspian/team/appstudio-binding.yaml"
+pe "kubectl kcp ws root:bspian:platform"
+pe "kubectl apply -f ./bspian/team/appstudio-binding.yaml --token ben"
+echo "Lets look at the bindings. We expect the app-studio binding to show up"
+pe "kubectl get apibindings"
+echo ""
+echo "Now we want to create a App-studio App instance to use with App-studio."
+show_yaml "./bspian/team/appstudio1.yaml"
+
+pe "kubectl apply -f ./bspian/team/appstudio1.yaml --token ben"
+echo ""
+echo "We have a app-studio basic subscription, allowing us one instance only. Let's try to create a second one, which should fail."
+show_yaml "./bspian/team/appstudio2.yaml"
+pe "kubectl apply -f ./bspian/team/appstudio2.yaml --token ben"
+echo "Let's look at the existing apps. There should not be any new ones."
+pe "kubectl get apps"
+
+echo ""
+echo "Ben tries to bind Hacbs for the platform team in the bspian org"
+echo "Bspian is not entitled to Hacbs and ben fails to bind this API to the platform workspace"
+echo ""
+show_yaml "./bspian/team/hacbs-binding.yaml"
+pe "kubectl kcp ws root:bspian:platform"
+pe "kubectl apply -f ./bspian/team/hacbs-binding.yaml --token ben"
+echo "Lets look at the bindings. We expect nothing new to be bound."
+pe "kubectl get apibindings"
+echo "Done!!"

@@ -1,0 +1,13 @@
+apiVersion: apis.kcp.dev/v1alpha1
+kind: APIBinding
+metadata:
+  name: hacbs
+spec:
+  reference:
+    workspace:
+      path: root:redhat:hacbs
+      exportName: hacbs
+  acceptedPermissionClaims:
+    - resource: "secrets"
+    - resource: "configmaps"
+    - resource: "namespaces"
