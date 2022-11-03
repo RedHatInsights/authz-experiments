@@ -19,10 +19,8 @@ metadata:
   name: aspian-employees
   clusterName: root
 subjects:
-- kind: User
-  name: alex
-- kind: User
-  name: aidan
+- kind: Group
+  name: org/aspian
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

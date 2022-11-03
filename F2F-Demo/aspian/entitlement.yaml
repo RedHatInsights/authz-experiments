@@ -1,4 +1,4 @@
-apiVersion: authz.authz/v1
+apiVersion: apis.kcp.dev/v1alpha1
 kind: Entitlement
 metadata:
   labels:
