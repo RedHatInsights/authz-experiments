@@ -2,7 +2,7 @@
 
 RED="\e[31m"
 GREEN="\e[32m"
-YELLOW="\e[91m" # 33 is regular yellow
+YELLOW="\e[33m"
 ENDCOLOR="\e[0m"
 
 echo_yellow() {
