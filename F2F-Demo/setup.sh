@@ -90,7 +90,7 @@ echo_yellow ""
 echo_yellow "Scenario 1: Abigail gives access to the team 'platform', part of aspian org in a workspace called platform for HACBS"
 echo_yellow "We just entitled Aspian to bind HACBS, as they bought a subscription. Abigail binds the API to the platform workspace"
 echo_yellow ""
-
+pe "kubectl ws root:aspian:platform"
 show_yaml "aspian/team/hacbs-binding.yaml"
 pe "kubectl apply -f ./aspian/team/hacbs-binding.yaml --token abigail"
 echo_yellow "Lets look at the bindings for this workspace. We expect the hacbs binding to show up:"
