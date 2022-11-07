@@ -119,7 +119,7 @@ echo_yellow "Aspian is not entitled to bind AppStudio. Abigail fails to bind thi
 echo_yellow "Lets look at the bindings. We expect nothing new to be bound:"
 pe "kubectl get apibindings"
 echo_yellow ""
-echo_yellow "Entitlements are stored at the organization level, they are be plain old kube objects and can be viewed as normal:"
+echo_yellow "Entitlements are stored at the organization level, they are plain old kube objects and can be viewed as normal:"
 echo_yellow ""
 pe "kubectl ws root:aspian"
 pe "kubectl get entitlement hacbs -oyaml"
