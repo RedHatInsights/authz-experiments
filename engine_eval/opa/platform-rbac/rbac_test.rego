@@ -124,3 +124,14 @@ test_deny_delete_with_data_tenant_B_for_billing_user_role {
     with data.user_roles as user_roles
     with data.roles as roles
 }
+
+test_deny_delete_with_tenant_without_role_billing_definition {
+    not allow with input as {
+                        "permission": "delete",
+                        "resource": "subscriptions",
+                        "tenant_id": "tenant_c",
+                        "user": "mark"
+                    }
+    with data.user_roles as user_roles
+    with data.roles as roles
+}
