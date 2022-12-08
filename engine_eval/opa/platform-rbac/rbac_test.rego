@@ -103,7 +103,7 @@ user_roles :=  {
                 }
 
 
-test_allow_delete_with_data_tenant_A {
+test_allow_delete_with_data_tenant_A_for_billing_user_role {
     allow with input as {
                         "permission": "delete",
                         "resource": "subscriptions",
@@ -114,7 +114,7 @@ test_allow_delete_with_data_tenant_A {
     with data.roles as roles
 }
 
-test_fail_delete_with_data_tenant_B {
+test_deny_delete_with_data_tenant_B_for_billing_user_role {
     not allow with input as {
                         "permission": "delete",
                         "resource": "subscriptions",
