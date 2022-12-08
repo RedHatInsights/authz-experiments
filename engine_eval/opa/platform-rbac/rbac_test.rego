@@ -97,7 +97,7 @@ user_roles :=  {
                         "employee",
                         "billing"
                     ],
-                    "mark@redhat.com": [
+                    "mark": [
                         "billing"
                     ]
                 }
@@ -108,7 +108,7 @@ test_allow_delete_with_data_tenant_A {
                         "permission": "delete",
                         "resource": "subscriptions",
                         "tenant_id": "tenant_a",
-                        "user": "mark@redhat.com"
+                        "user": "mark"
                     }
     with data.user_roles as user_roles
     with data.roles as roles
@@ -119,7 +119,7 @@ test_fail_delete_with_data_tenant_B {
                         "permission": "delete",
                         "resource": "subscriptions",
                         "tenant_id": "tenant_b",
-                        "user": "mark@redhat.com"
+                        "user": "mark"
                     }
     with data.user_roles as user_roles
     with data.roles as roles
