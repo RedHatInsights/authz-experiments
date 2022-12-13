@@ -1,0 +1,153 @@
+{
+  "type_definitions": [
+    {
+      "type": "user",
+      "relations": {},
+      "metadata": null
+    },
+    {
+      "type": "role",
+      "relations": {
+        "assignee": {
+          "this": {}
+        }
+      },
+      "metadata": null
+    },
+    {
+      "type": "resource",
+      "relations": {
+        "any": {
+          "this": {}
+        },
+        "can_everything": {
+          "computedUserset": {
+            "object": "",
+            "relation": "any"
+          }
+        },
+        "can_read": {
+          "union": {
+            "child": [
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "read"
+                }
+              },
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "write"
+                }
+              },
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "any"
+                }
+              }
+            ]
+          }
+        },
+        "can_write": {
+          "intersection": {
+            "child": [
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "write"
+                }
+              },
+              {
+                "tupleToUserset": {
+                  "tupleset": {
+                    "object": "",
+                    "relation": "org"
+                  },
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "descendant"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "create": {
+          "this": {}
+        },
+        "delete": {
+          "this": {}
+        },
+        "execute": {
+          "this": {}
+        },
+        "link": {
+          "this": {}
+        },
+        "order": {
+          "this": {}
+        },
+        "org": {
+          "this": {}
+        },
+        "read": {
+          "this": {}
+        },
+        "unlink": {
+          "this": {}
+        },
+        "update": {
+          "this": {}
+        },
+        "write": {
+          "this": {}
+        }
+      },
+      "metadata": null
+    },
+    {
+      "type": "org",
+      "relations": {
+        "descendant": {
+          "union": {
+            "child": [
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "member"
+                }
+              },
+              {
+                "tupleToUserset": {
+                  "tupleset": {
+                    "object": "",
+                    "relation": "member"
+                  },
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "descendant"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "member": {
+          "this": {}
+        }
+      },
+      "metadata": null
+    },
+    {
+      "type": "group",
+      "relations": {
+        "member": {
+          "this": {}
+        }
+      },
+      "metadata": null
+    }
+  ]
+}
