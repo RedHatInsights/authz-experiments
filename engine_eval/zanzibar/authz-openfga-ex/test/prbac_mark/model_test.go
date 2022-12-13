@@ -44,11 +44,12 @@ func TestWithOpenFGA(t *testing.T) {
 	authZModel := result["authorization_model"].(map[string]interface{})
 	t.Logf("Authorization model: %s", authZModel)
 
-	tuples := result["tuples"].(map[string]interface{})
-	t.Logf("Tuples: %s", tuples)
+	//TODO: not working due to array. maybe i really need structs ^^
+	//tuples := result["tuples"].([]map[string]interface{})
+	//t.Logf("Tuples: %s", tuples)
 
-	assertions := result["assertions"].(map[string]interface{})
-	t.Logf("Assertions: %s", assertions)
+	//assertions := result["assertions"].(map[string]interface{})
+	//t.Logf("Assertions: %s", assertions)
 
 	/* WIP end */
 
