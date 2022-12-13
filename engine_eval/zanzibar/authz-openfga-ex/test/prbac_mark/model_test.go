@@ -56,7 +56,6 @@ func TestWithOpenFGA(t *testing.T) {
 	configuration, err := openfga.NewConfiguration(openfga.Configuration{
 		ApiScheme: "http",
 		ApiHost:   "0.0.0.0:8080",
-		StoreId:   "01GM5CBY4TR8QJ97GNDJVF71TW",
 	})
 	if err != nil {
 		t.Fatalf("%v", err)
