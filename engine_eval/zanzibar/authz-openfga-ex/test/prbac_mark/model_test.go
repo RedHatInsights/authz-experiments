@@ -7,6 +7,7 @@ import (
 	openfga "github.com/openfga/go-sdk"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"os"
 	"testing"
 )
 
@@ -19,6 +20,31 @@ type TestDefinition struct {
 }
 
 func TestWithOpenFGA(t *testing.T) {
+	/* playing around with parsing given json to create requests to build the model in the container out of it (giving structure is the same - WIP */
+	content, err := os.ReadFile("mark_export.json")
+	if err != nil {
+		t.Fatalf("failed to load data: %s", err.Error())
+	}
+	t.Logf("Content: %s", content)
+	var result map[string]interface{}
+
+	e := json.Unmarshal(content, &result)
+
+	if e != nil {
+		t.Fatalf("failed to unmarshal json: %s", e.Error())
+
+	}
+
+	id := result["id"]
+	name := result["name"]
+
+	t.Logf("Data ID: %s", id)
+	t.Logf("Data Name: %s", name)
+
+	authZModel := result["authorization_model"].(map[string]interface{})
+	t.Logf("Authorization model: %s", authZModel)
+	/* WIP end */
+
 	configuration, err := openfga.NewConfiguration(openfga.Configuration{
 		ApiScheme: "http",
 		ApiHost:   "0.0.0.0:8080",
