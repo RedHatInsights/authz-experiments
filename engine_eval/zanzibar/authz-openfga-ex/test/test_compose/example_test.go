@@ -37,7 +37,7 @@ func TestSomething(t *testing.T) {
 	apiClient := openfga.NewAPIClient(configuration)
 
 	resp, _, err := apiClient.OpenFgaApi.CreateStore(context.Background()).Body(openfga.CreateStoreRequest{
-		Name: openfga.PtrString("FGA Testcontainer Store"),
+		Name: openfga.PtrString("OpenFGA Testcontainer Store"),
 	}).Execute()
 
 	if err != nil {
