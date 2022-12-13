@@ -47,6 +47,8 @@ func main() {
 		}
 	} else {
 		resp, err := createStore(apiClient)
+		resp.GetId()
+		apiClient.SetStoreId(resp.GetId())
 		if err != nil {
 			glog.Errorf("Error:%s", err)
 		}
