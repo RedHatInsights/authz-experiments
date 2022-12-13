@@ -32,7 +32,7 @@ func TestOpenFgaApi(t *testing.T) {
 	configuration, err := openfga.NewConfiguration(openfga.Configuration{
 		ApiScheme: "http",
 		ApiHost:   "0.0.0.0:8080",
-		StoreId:   "01GM3S2VB1H25YA3KKF3XNDJQ8",
+		StoreId:   "01GM5CBY4TR8QJ97GNDJVF71TW",
 	})
 	if err != nil {
 		t.Fatalf("%v", err)
@@ -66,5 +66,19 @@ func TestOpenFgaApi(t *testing.T) {
 		}
 		fmt.Println(got)
 		fmt.Println(response)
+
+		if response.StatusCode != test.ResponseStatus {
+			t.Fatalf("OpenFga%v().Execute() = %v, want %v", test.Name, response.StatusCode, test.ResponseStatus)
+		}
+
+		responseJson, err := got.MarshalJSON()
+		if err != nil {
+			t.Fatalf("%v", err)
+		}
+
+		if *got.Allowed != *expectedResponse.Allowed {
+			t.Fatalf("OpenFga%v().Execute() = %v, want %v", test.Name, string(responseJson), test.JsonResponse)
+		}
+
 	})
 }
