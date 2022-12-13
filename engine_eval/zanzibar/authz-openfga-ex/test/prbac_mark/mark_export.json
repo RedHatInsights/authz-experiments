@@ -1,0 +1,235 @@
+{
+  "id": "01GK7RA1VW5C1P19H0WEKCY0KB",
+  "name": "marktest",
+  "authorization_model": {
+    "schema_version": "1.0",
+    "id": "01GKQBVGBDRCASPYQYKQT7ECEK",
+    "type_definitions": [
+      {
+        "type": "user",
+        "relations": {},
+        "metadata": null
+      },
+      {
+        "type": "role",
+        "relations": {
+          "assignee": {
+            "this": {}
+          }
+        },
+        "metadata": null
+      },
+      {
+        "type": "resource",
+        "relations": {
+          "any": {
+            "this": {}
+          },
+          "can_everything": {
+            "computedUserset": {
+              "object": "",
+              "relation": "any"
+            }
+          },
+          "can_read": {
+            "union": {
+              "child": [
+                {
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "read"
+                  }
+                },
+                {
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "write"
+                  }
+                },
+                {
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "any"
+                  }
+                }
+              ]
+            }
+          },
+          "can_write": {
+            "intersection": {
+              "child": [
+                {
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "write"
+                  }
+                },
+                {
+                  "tupleToUserset": {
+                    "tupleset": {
+                      "object": "",
+                      "relation": "org"
+                    },
+                    "computedUserset": {
+                      "object": "",
+                      "relation": "descendant"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "create": {
+            "this": {}
+          },
+          "delete": {
+            "this": {}
+          },
+          "execute": {
+            "this": {}
+          },
+          "link": {
+            "this": {}
+          },
+          "order": {
+            "this": {}
+          },
+          "org": {
+            "this": {}
+          },
+          "read": {
+            "this": {}
+          },
+          "unlink": {
+            "this": {}
+          },
+          "update": {
+            "this": {}
+          },
+          "write": {
+            "this": {}
+          }
+        },
+        "metadata": null
+      },
+      {
+        "type": "org",
+        "relations": {
+          "descendant": {
+            "union": {
+              "child": [
+                {
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "member"
+                  }
+                },
+                {
+                  "tupleToUserset": {
+                    "tupleset": {
+                      "object": "",
+                      "relation": "member"
+                    },
+                    "computedUserset": {
+                      "object": "",
+                      "relation": "descendant"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "member": {
+            "this": {}
+          }
+        },
+        "metadata": null
+      },
+      {
+        "type": "group",
+        "relations": {
+          "member": {
+            "this": {}
+          }
+        },
+        "metadata": null
+      }
+    ]
+  },
+  "tuples": [
+    {
+      "object": "group:admin",
+      "relation": "member",
+      "user": "user:anne"
+    },
+    {
+      "object": "org:aspian",
+      "relation": "member",
+      "user": "group:admin"
+    },
+    {
+      "object": "org:aspian",
+      "relation": "member",
+      "user": "user:anne"
+    },
+    {
+      "object": "org:aspian",
+      "relation": "org_member",
+      "user": "user:anne"
+    },
+    {
+      "object": "org:bspian",
+      "relation": "member",
+      "user": "group:admin"
+    },
+    {
+      "object": "org:lalala",
+      "relation": "member",
+      "user": "group:admin"
+    },
+    {
+      "object": "resource:serviceA",
+      "relation": "org",
+      "user": "org:aspian"
+    },
+    {
+      "object": "resource:serviceA",
+      "relation": "write",
+      "user": "group:admin#member"
+    }
+  ],
+  "assertions": [
+    {
+      "tuple_key": {
+        "user": "user:anne",
+        "relation": "can_write",
+        "object": "resource:serviceA"
+      },
+      "expectation": true
+    },
+    {
+      "tuple_key": {
+        "user": "group:admin#member",
+        "relation": "write",
+        "object": "resource:serviceA"
+      },
+      "expectation": true
+    },
+    {
+      "tuple_key": {
+        "user": "user:anne",
+        "relation": "read",
+        "object": "resource:serviceA"
+      },
+      "expectation": false
+    },
+    {
+      "tuple_key": {
+        "user": "user:anne",
+        "relation": "can_read",
+        "object": "resource:serviceA"
+      },
+      "expectation": true
+    }
+  ]
+}
