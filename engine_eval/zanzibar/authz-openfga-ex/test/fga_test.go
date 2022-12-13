@@ -1,6 +1,7 @@
 package test
 
 import (
+	"authz-openfga-ex/utils"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -29,11 +30,13 @@ func TestOpenFgaApiConfiguration(t *testing.T) {
 }
 
 func TestOpenFgaApi(t *testing.T) {
+	storeid, err := readStoreId()
 	configuration, err := openfga.NewConfiguration(openfga.Configuration{
 		ApiScheme: "http",
 		ApiHost:   "0.0.0.0:8080",
-		StoreId:   "01GM5CBY4TR8QJ97GNDJVF71TW",
+		StoreId:   storeid,
 	})
+
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -81,4 +84,12 @@ func TestOpenFgaApi(t *testing.T) {
 		}
 
 	})
+}
+
+func readStoreId() (string, error) {
+	var storeid string
+	var err error
+	file := "../storeId.txt"
+	err = utils.ReadFileValueString(file, &storeid)
+	return storeid, err
 }

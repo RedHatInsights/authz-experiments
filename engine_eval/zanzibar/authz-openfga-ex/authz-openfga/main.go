@@ -1,6 +1,7 @@
 package main
 
 import (
+	"authz-openfga-ex/utils"
 	"context"
 	"encoding/json"
 	"flag"
@@ -36,41 +37,49 @@ func main() {
 		glog.Errorf("Error:%s", err)
 	}
 
+	var storeId string
 	if len(*resp.Stores) > 0 {
 		for _, store := range *resp.Stores {
 			if store.GetName() == "authz_usermgmt" {
 				glog.Info("Setting store Id")
-				apiClient.SetStoreId(store.GetId())
+				storeId = store.GetId()
+
 				glog.Infof("Store name:%s", store.GetName())
 				glog.Infof("Store id:%s", store.GetId())
 			}
 		}
 	} else {
 		resp, err := createStore(apiClient)
-		resp.GetId()
-		apiClient.SetStoreId(resp.GetId())
+		storeId = resp.GetId()
 		if err != nil {
 			glog.Errorf("Error:%s", err)
 		}
 		glog.Infof("Store created:%s", resp.GetName())
 	}
 
-	//var writeAuthorizationModelRequestString = "{\n  \"type_definitions\": [\n    {\n      \"type\": \"user\"\n    },\n    {\n      \"type\": \"group\",\n      \"relations\": {\n        \"member\": {\n          \"this\": {}\n        }\n      }\n    },\n    {\n      \"type\": \"resource\",\n      \"relations\": {\n        \"writer\": {\n          \"this\": {}\n        },\n        \"reader\": {\n          \"union\": {\n            \"child\": [\n              {\n                \"this\": {}\n              },\n              {\n                \"computedUserset\": {\n                  \"relation\": \"writer\"\n                }\n              }\n            ]\n          }\n        }\n      }\n    }\n  ],\n  \"schema_version\": \"1.0\"\n}"
-	var writeAuthorizationModelRequestString = AUTH_MODEL
-	var body openfga.WriteAuthorizationModelRequest
-	if err := json.Unmarshal([]byte(writeAuthorizationModelRequestString), &body); err != nil {
-		glog.Errorf("Error :%s", err)
-		return
+	if utils.IsNotNil(storeId) {
+		apiClient.SetStoreId(storeId)
+		utils.CreateFileFromStringData("storeId.txt", storeId)
 	}
 
-	data, response, err := apiClient.OpenFgaApi.WriteAuthorizationModel(context.Background()).Body(body).Execute()
-	if err != nil {
-		glog.Errorf("Error :%s", err)
+	if utils.IsNotNil(AUTH_MODEL) {
+		//var writeAuthorizationModelRequestString = "{\n  \"type_definitions\": [\n    {\n      \"type\": \"user\"\n    },\n    {\n      \"type\": \"group\",\n      \"relations\": {\n        \"member\": {\n          \"this\": {}\n        }\n      }\n    },\n    {\n      \"type\": \"resource\",\n      \"relations\": {\n        \"writer\": {\n          \"this\": {}\n        },\n        \"reader\": {\n          \"union\": {\n            \"child\": [\n              {\n                \"this\": {}\n              },\n              {\n                \"computedUserset\": {\n                  \"relation\": \"writer\"\n                }\n              }\n            ]\n          }\n        }\n      }\n    }\n  ],\n  \"schema_version\": \"1.0\"\n}"
+		var writeAuthorizationModelRequestString = AUTH_MODEL
+		var body openfga.WriteAuthorizationModelRequest
+		if err := json.Unmarshal([]byte(writeAuthorizationModelRequestString), &body); err != nil {
+			glog.Errorf("Error :%s", err)
+			return
+		}
+
+		data, response, err := apiClient.OpenFgaApi.WriteAuthorizationModel(context.Background()).Body(body).Execute()
+		if err != nil {
+			glog.Errorf("Error :%s", err)
+		}
+		//
+		fmt.Println(data.GetAuthorizationModelId())
+		utils.CreateFileFromStringData("authmodel.txt", data.GetAuthorizationModelId())
+		fmt.Println(response.Status)
 	}
-	//
-	fmt.Println(data.GetAuthorizationModelId())
-	//
-	fmt.Println(response.Status)
 
 }
 

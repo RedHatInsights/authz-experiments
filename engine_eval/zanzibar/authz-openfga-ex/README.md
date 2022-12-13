@@ -21,7 +21,9 @@ export OPENFGA_AUTH_MODEL="{\"type_definitions\":[{\"type\":\"document\",\"relat
 ```
 ## Create a store auth_usermgmt and create OPENFGA_AUTH_MODEL
 ```
-go run main.go
+make run 
+or
+go run ./authz-openfga/main.go
 ```
 
 Run test against local openfga server
