@@ -1,0 +1,21 @@
+{
+  "type_definitions": [
+    {
+      "type": "user"
+    },
+    {
+      "type": "document",
+      "relations": {
+        "reader": {
+          "this": {}
+        },
+        "writer": {
+          "this": {}
+        },
+        "owner": {
+          "this": {}
+        }
+      }
+    }
+  ]
+}
