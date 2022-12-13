@@ -43,6 +43,13 @@ func TestWithOpenFGA(t *testing.T) {
 
 	authZModel := result["authorization_model"].(map[string]interface{})
 	t.Logf("Authorization model: %s", authZModel)
+
+	tuples := result["tuples"].(map[string]interface{})
+	t.Logf("Tuples: %s", tuples)
+
+	assertions := result["assertions"].(map[string]interface{})
+	t.Logf("Assertions: %s", assertions)
+
 	/* WIP end */
 
 	configuration, err := openfga.NewConfiguration(openfga.Configuration{
