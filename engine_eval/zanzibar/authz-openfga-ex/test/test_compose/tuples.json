@@ -1,0 +1,38 @@
+[
+  {
+    "object": "group:admin",
+    "relation": "member",
+    "user": "user:anne"
+  },
+  {
+    "object": "org:aspian",
+    "relation": "member",
+    "user": "group:admin"
+  },
+  {
+    "object": "org:aspian",
+    "relation": "member",
+    "user": "user:anne"
+  },
+  {
+    "object": "org:bspian",
+    "relation": "member",
+    "user": "group:admin"
+  },
+  {
+    "object": "org:lalala",
+    "relation": "member",
+    "user": "group:admin"
+  },
+  {
+    "object": "resource:serviceA",
+    "relation": "org",
+    "user": "org:aspian"
+  },
+  {
+    "object": "resource:serviceA",
+    "relation": "write",
+    "user": "group:admin#member"
+  }
+]
+
