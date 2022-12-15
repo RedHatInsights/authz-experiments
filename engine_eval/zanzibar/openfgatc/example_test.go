@@ -11,6 +11,7 @@ import (
 	"testing"
 )
 
+//test for gha run
 func TestOpenFgaTcExample(t *testing.T) {
 	setupComposeContainers(t)
 
