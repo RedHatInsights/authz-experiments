@@ -30,4 +30,3 @@ Run test against local openfga server
 ```
 go test authz-openfga-ex/test -test.v
 ```
-test
