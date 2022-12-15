@@ -5,7 +5,7 @@
     "user": "user:anne"
   },
   {
-    "object": "org:aspian",
+    "object": "org:cspian",
     "relation": "member",
     "user": "group:admin"
   },
