@@ -2,7 +2,7 @@ name: OpenFGA Testcontainers experiment Build
 on:
   push:
     paths:
-      - './engine_eval/zanzibar/openfgatc/**'
+      - 'engine_eval/zanzibar/openfgatc/**'
 
 jobs:
   build:
