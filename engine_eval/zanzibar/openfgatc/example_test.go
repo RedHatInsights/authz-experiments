@@ -1,4 +1,4 @@
-package test_compose
+package openfgatc
 
 import (
 	"context"
@@ -23,7 +23,6 @@ func TestOpenFgaTcExample(t *testing.T) {
 	createTuplesFromJson(t, apiClient) // returns the data but not needed here.
 
 	createAssertionsFromJson(t, apiClient, modelData) // returns the data but not needed here.
-
 	//TODO: actually check/assert sth with the given model
 }
 
@@ -113,11 +112,11 @@ func createOpenFgaStoreAndGetId(t *testing.T) string {
 
 	apiClient := openfga.NewAPIClient(configuration)
 
-	resp, _, err := apiClient.OpenFgaApi.CreateStore(context.Background()).Body(openfga.CreateStoreRequest{
-		Name: openfga.PtrString("OpenFGA Testcontainer Store"),
+	resp, _, er := apiClient.OpenFgaApi.CreateStore(context.Background()).Body(openfga.CreateStoreRequest{
+		Name: "OpenFGA Testcontainer Store",
 	}).Execute()
 
-	if err != nil {
+	if er != nil {
 		t.Fatalf("Failed to create store. Error: %v", err)
 	}
 
