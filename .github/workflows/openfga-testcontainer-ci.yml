@@ -5,7 +5,7 @@ on:
       - 'engine_eval/zanzibar/openfgatc/**'
 
 jobs:
-  build:
+  build_and_run_tests:
     runs-on: ubuntu-latest
     env:
       working-directory: ./engine_eval/zanzibar/openfgatc
