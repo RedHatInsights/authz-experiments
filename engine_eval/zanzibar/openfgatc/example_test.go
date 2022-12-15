@@ -11,7 +11,6 @@ import (
 	"testing"
 )
 
-// test
 func TestOpenFgaTcExample(t *testing.T) {
 	setupComposeContainers(t)
 
