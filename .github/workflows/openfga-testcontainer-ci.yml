@@ -1,5 +1,5 @@
 name: OpenFGA Testcontainers experiment Build
-on: [push, pull_request]
+on: [push]
 
 jobs:
   build:
