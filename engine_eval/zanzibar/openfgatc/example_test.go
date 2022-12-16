@@ -3,12 +3,14 @@ package openfgatc
 import (
 	"context"
 	"encoding/json"
-	openfga "github.com/openfga/go-sdk"
-	"github.com/stretchr/testify/assert"
-	tc "github.com/testcontainers/testcontainers-go"
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
+
+	openfga "github.com/openfga/go-sdk"
+	"github.com/stretchr/testify/assert"
+	tc "github.com/testcontainers/testcontainers-go"
 )
 
 func TestOpenFgaTcExample(t *testing.T) {
@@ -22,20 +24,40 @@ func TestOpenFgaTcExample(t *testing.T) {
 
 	createTuplesFromJson(t, apiClient) // returns the data but not needed here.
 
-	createAssertionsFromJson(t, apiClient, modelData) // returns the data but not needed here.
+	assertions := createAssertionsFromJson(t, apiClient, modelData) // returns the data but not needed here.
+
+	checkAssertions(t, apiClient, modelData.AuthorizationModelId, assertions) //Checks the assertions against the model
 	//TODO: actually check/assert sth with the given model
 }
 
-func createAssertionsFromJson(t *testing.T, apiClient *openfga.APIClient, modelData openfga.WriteAuthorizationModelResponse) *http.Response {
-	assertions := readAssertionsFromFile(t)
+func checkAssertions(t *testing.T, apiClient *openfga.APIClient, modelId *string, assertions []openfga.Assertion) {
+	trace := false
 
-	var assertionsReqBody openfga.WriteAssertionsRequest
+	for _, assertion := range assertions {
+		body := openfga.CheckRequest{TupleKey: assertion.TupleKey, ContextualTuples: nil, AuthorizationModelId: modelId, Trace: &trace}
+		result, _, err := apiClient.OpenFgaApi.Check(context.Background()).Body(body).Execute()
 
-	if err := json.Unmarshal(assertions, &assertionsReqBody.Assertions); err != nil {
+		if err != nil {
+			t.Errorf("Error checking assertion tuple (%s): %v", tupleKeyToString(assertion.TupleKey), err)
+			return
+		}
+
+		if assertion.Expectation != *result.Allowed {
+			t.Errorf("Assertion failed! %s - Expected: %t, Actual: %t", tupleKeyToString(assertion.TupleKey), assertion.Expectation, *result.Allowed)
+		}
+	}
+}
+
+func createAssertionsFromJson(t *testing.T, apiClient *openfga.APIClient, modelData openfga.WriteAuthorizationModelResponse) []openfga.Assertion {
+	jsonData := readAssertionsFromFile(t)
+
+	var assertions []openfga.Assertion
+
+	if err := json.Unmarshal(jsonData, &assertions); err != nil {
 		t.Errorf("Error unmarshalling assertions: %v", err)
 	}
 
-	assertionResponse, err := apiClient.OpenFgaApi.WriteAssertions(context.Background(), *modelData.AuthorizationModelId).Body(assertionsReqBody).Execute()
+	assertionResponse, err := apiClient.OpenFgaApi.WriteAssertions(context.Background(), *modelData.AuthorizationModelId).Body(*openfga.NewWriteAssertionsRequest(assertions)).Execute()
 
 	if err != nil {
 		t.Errorf("Error writing assertions: %v", err)
@@ -43,7 +65,7 @@ func createAssertionsFromJson(t *testing.T, apiClient *openfga.APIClient, modelD
 
 	t.Logf("assertion resp: %v", assertionResponse)
 
-	return assertionResponse
+	return assertions
 }
 
 func createTuplesFromJson(t *testing.T, apiClient *openfga.APIClient) (map[string]interface{}, *http.Response) {
@@ -164,4 +186,8 @@ func setupComposeContainers(t *testing.T) {
 	t.Cleanup(cancel)
 
 	assert.NoError(t, compose.Up(ctx, tc.Wait(true)), "compose.Up()")
+}
+
+func tupleKeyToString(val openfga.TupleKey) string {
+	return fmt.Sprintf("User: %s, Relation: %s, Object: %s", *val.User, *val.Relation, *val.Object)
 }
