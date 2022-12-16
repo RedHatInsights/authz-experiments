@@ -5,8 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	openfga "github.com/openfga/go-sdk"
 	"testing"
+
+	openfga "github.com/openfga/go-sdk"
 )
 
 type TestDefinition struct {
@@ -15,6 +16,14 @@ type TestDefinition struct {
 	ResponseStatus int
 	Method         string
 	RequestPath    string
+}
+
+func readStoreId() (string, error) {
+	var storeid string
+	var err error
+	file := "../storeId.txt"
+	err = utils.ReadFileValueString(file, &storeid)
+	return storeid, err
 }
 
 func TestOpenFgaApiConfiguration(t *testing.T) {
@@ -84,12 +93,4 @@ func TestOpenFgaApi(t *testing.T) {
 		}
 
 	})
-}
-
-func readStoreId() (string, error) {
-	var storeid string
-	var err error
-	file := "../storeId.txt"
-	err = utils.ReadFileValueString(file, &storeid)
-	return storeid, err
 }
