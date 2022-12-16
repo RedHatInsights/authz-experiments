@@ -1,0 +1,12 @@
+{
+    "assertions": [
+      {
+        "tuple_key": {
+          "object": "metrics:read",
+          "relation": "read",
+          "user": "srvcaccnt1-aspian"
+        },
+        "expectation": true
+      }
+    ]
+  }

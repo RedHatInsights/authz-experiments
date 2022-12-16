@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"os"
+
 	"github.com/golang/glog"
 	openfga "github.com/openfga/go-sdk"
-	"os"
 )
 
 func main() {
@@ -18,7 +20,10 @@ func main() {
 		ApiScheme: "http",         // Optional. Can be "http" or "https". Defaults to "https"
 		ApiHost:   "0.0.0.0:8080", // required, define without the scheme (e.g. api.openfga.example instead of https://api.openfga.example)
 	})
-	AUTH_MODEL := os.Getenv("OPENFGA_AUTH_MODEL")
+
+	AUTH_MODEL_JSON_FILE := os.Getenv("OPENFGA_AUTH_MODEL_JSON_FILE")
+	AUTH_MODEL_TUPLE_JSON_FILE := os.Getenv("OPENFGA_AUTH_MODEL_TUPLES_JSON_FILE")
+	AUTH_MODEL_ASSERTION_JSON_FILE := os.Getenv("OPENFGA_AUTH_MODEL_ASSERTION_JSON_FILE")
 
 	_ = flag.CommandLine.Parse([]string{})
 
@@ -29,6 +34,11 @@ func main() {
 	}
 	if err != nil {
 		glog.Errorf("Error:%s", err)
+	}
+
+	// Preflight checks
+	if utils.IsNil(AUTH_MODEL_JSON_FILE) {
+		glog.Fatalf("Auth Model JSON File not specified. Please set env value `OPENFGA_AUTH_MODEL_JSON_FILE`")
 	}
 
 	apiClient := openfga.NewAPIClient(configuration)
@@ -57,28 +67,25 @@ func main() {
 		glog.Infof("Store created:%s", resp.GetName())
 	}
 
+	//Set the storeID in the client
 	if utils.IsNotNil(storeId) {
 		apiClient.SetStoreId(storeId)
-		utils.CreateFileFromStringData("storeId.txt", storeId)
+		utils.CreateFileFromStringData("storeId.txt", storeId) // Used in testing to get the storeID
 	}
 
-	if utils.IsNotNil(AUTH_MODEL) {
-		//var writeAuthorizationModelRequestString = "{\n  \"type_definitions\": [\n    {\n      \"type\": \"user\"\n    },\n    {\n      \"type\": \"group\",\n      \"relations\": {\n        \"member\": {\n          \"this\": {}\n        }\n      }\n    },\n    {\n      \"type\": \"resource\",\n      \"relations\": {\n        \"writer\": {\n          \"this\": {}\n        },\n        \"reader\": {\n          \"union\": {\n            \"child\": [\n              {\n                \"this\": {}\n              },\n              {\n                \"computedUserset\": {\n                  \"relation\": \"writer\"\n                }\n              }\n            ]\n          }\n        }\n      }\n    }\n  ],\n  \"schema_version\": \"1.0\"\n}"
-		var writeAuthorizationModelRequestString = AUTH_MODEL
-		var body openfga.WriteAuthorizationModelRequest
-		if err := json.Unmarshal([]byte(writeAuthorizationModelRequestString), &body); err != nil {
-			glog.Errorf("Error :%s", err)
-			return
-		}
+	authzModelID, err := createAuthModel(apiClient, AUTH_MODEL_JSON_FILE)
+	if err != nil {
+		glog.Fatalf("Error creating Authmodel: %s", err)
+	}
 
-		data, response, err := apiClient.OpenFgaApi.WriteAuthorizationModel(context.Background()).Body(body).Execute()
-		if err != nil {
-			glog.Errorf("Error :%s", err)
-		}
-		//
-		fmt.Println(data.GetAuthorizationModelId())
-		utils.CreateFileFromStringData("authmodel.txt", data.GetAuthorizationModelId())
-		fmt.Println(response.Status)
+	err = createTuples(apiClient, AUTH_MODEL_TUPLE_JSON_FILE)
+	if err != nil {
+		glog.Errorf("Error :%s", err)
+	}
+
+	err = createAssertions(apiClient, authzModelID, AUTH_MODEL_ASSERTION_JSON_FILE)
+	if err != nil {
+		glog.Errorf("Error :%s", err)
 	}
 
 }
@@ -88,4 +95,113 @@ func createStore(apiClient *openfga.APIClient) (openfga.CreateStoreResponse, err
 		Name: openfga.PtrString("authz_usermgmt"),
 	}).Execute()
 	return resp, err
+}
+
+func createTuples(apiClient *openfga.APIClient, tuplesJsonFilePath string) error {
+
+	jsonAuthModelTuplesFile, err := os.Open(tuplesJsonFilePath)
+	if err != nil {
+		glog.Errorf("Error :%s", err)
+		return err
+	}
+	defer jsonAuthModelTuplesFile.Close()
+	byteValue, err := ioutil.ReadAll(jsonAuthModelTuplesFile)
+	if err != nil {
+		glog.Errorf("Error :%s", err)
+		return err
+	}
+
+	var body openfga.WriteRequest
+
+	if err := json.Unmarshal(byteValue, &body); err != nil {
+		glog.Errorf("Error :%s", err)
+		return err
+	}
+
+	_, response, err := apiClient.OpenFgaApi.Write(context.Background()).Body(body).Execute()
+	if err != nil {
+		glog.Errorf("Error :%s", err)
+	}
+	fmt.Println(response.Status)
+	return err
+}
+
+func createAssertions(apiClient *openfga.APIClient, authorizationModelId, assertionsJsonFilePath string) error {
+	jsonAuthModelAssertionFile, err := os.Open(assertionsJsonFilePath)
+	if err != nil {
+		glog.Errorf("Error :%s", err)
+		return err
+	}
+	defer jsonAuthModelAssertionFile.Close()
+	byteValue, err := ioutil.ReadAll(jsonAuthModelAssertionFile)
+	if err != nil {
+		glog.Errorf("Error :%s", err)
+		return err
+	}
+
+	var body openfga.WriteAssertionsRequest
+
+	if err := json.Unmarshal(byteValue, &body); err != nil {
+		glog.Errorf("Error :%s", err)
+		return err
+	}
+
+	response, err := apiClient.OpenFgaApi.WriteAssertions(context.Background(), authorizationModelId).Body(body).Execute()
+	if err != nil {
+		glog.Errorf("Error :%s", err)
+	}
+	fmt.Println(response.Status)
+	return err
+
+}
+
+func createAuthModel(apiClient *openfga.APIClient, authmodelJsonFilePath string) (string, error) {
+
+	jsonAuthModelFile, err := os.Open(authmodelJsonFilePath)
+	if err != nil {
+		glog.Errorf("Error :%s", err)
+		return "", err
+	}
+	defer jsonAuthModelFile.Close()
+	byteValue, err := ioutil.ReadAll(jsonAuthModelFile)
+	if err != nil {
+		glog.Errorf("Error :%s", err)
+		return "", err
+	}
+
+	var body openfga.WriteAuthorizationModelRequest
+
+	if err := json.Unmarshal(byteValue, &body); err != nil {
+		glog.Errorf("Error :%s", err)
+		return "", err
+	}
+
+	data, response, err := apiClient.OpenFgaApi.WriteAuthorizationModel(context.Background()).Body(body).Execute()
+	if err != nil {
+		glog.Errorf("Error :%s", err)
+		return "", err
+	}
+
+	utils.CreateFileFromStringData("authmodel.txt", data.GetAuthorizationModelId())
+	glog.Infof("Create Authmodel response code: %s", response.Status)
+	return data.GetAuthorizationModelId(), err
+
+}
+
+func GetListOfObjects(apiClient *openfga.APIClient, user, relation, object string) {
+	requestBody := openfga.ReadRequest{
+		TupleKey: &openfga.TupleKey{
+			User:     openfga.PtrString(user),
+			Relation: openfga.PtrString(relation),
+			Object:   openfga.PtrString(object),
+		},
+	}
+
+	data, response, err := apiClient.OpenFgaApi.Read(context.Background()).Body(requestBody).Execute()
+	if err != nil {
+		glog.Errorf("Error :%s", err)
+	}
+	fmt.Println(response.Status)
+	tuples := data.GetTuples()
+	fmt.Println(tuples)
 }

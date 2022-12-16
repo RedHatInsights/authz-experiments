@@ -1,0 +1,203 @@
+{
+  "type_definitions": [
+    {
+      "type": "user",
+      "relations": {
+        "member": {
+          "this": {}
+        },
+        "org": {
+          "this": {}
+        },
+        "orgid": {
+          "union": {
+            "child": [
+              {
+                "this": {}
+              },
+              {
+                "tupleToUserset": {
+                  "tupleset": {
+                    "object": "",
+                    "relation": "owner"
+                  },
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "orgid"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "owner": {
+          "this": {}
+        },
+        "userid": {
+          "this": {}
+        }
+      },
+      "metadata": null
+    },
+    {
+      "type": "serviceaccount",
+      "relations": {
+        "orgid": {
+          "union": {
+            "child": [
+              {
+                "this": {}
+              },
+              {
+                "tupleToUserset": {
+                  "tupleset": {
+                    "object": "",
+                    "relation": "owner"
+                  },
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "orgid"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "owner": {
+          "this": {}
+        },
+        "ownerid": {
+          "union": {
+            "child": [
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "srvcaccntid"
+                }
+              },
+              {
+                "tupleToUserset": {
+                  "tupleset": {
+                    "object": "",
+                    "relation": "owner"
+                  },
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "userid"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "srvcaccntid": {
+          "this": {}
+        }
+      },
+      "metadata": null
+    },
+    {
+      "type": "resource",
+      "relations": {
+        "reader": {
+          "union": {
+            "child": [
+              {
+                "this": {}
+              },
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "writer"
+                }
+              }
+            ]
+          }
+        },
+        "writer": {
+          "this": {}
+        }
+      },
+      "metadata": null
+    },
+    {
+      "type": "org",
+      "relations": {
+        "member": {
+          "union": {
+            "child": [
+              {
+                "this": {}
+              },
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "owner"
+                }
+              }
+            ]
+          }
+        },
+        "org_admin": {
+          "this": {}
+        },
+        "orgid": {
+          "this": {}
+        },
+        "owner": {
+          "this": {}
+        }
+      },
+      "metadata": null
+    },
+    {
+      "type": "metrics",
+      "relations": {
+        "read": {
+          "this": {}
+        },
+        "write": {
+          "this": {}
+        }
+      },
+      "metadata": null
+    },
+    {
+      "type": "group",
+      "relations": {
+        "groupid": {
+          "this": {}
+        },
+        "member": {
+          "this": {}
+        },
+        "orgid": {
+          "union": {
+            "child": [
+              {
+                "this": {}
+              },
+              {
+                "tupleToUserset": {
+                  "tupleset": {
+                    "object": "",
+                    "relation": "owner"
+                  },
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "orgid"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "owner": {
+          "this": {}
+        }
+      },
+      "metadata": null
+    }
+  ],
+  "schema_version": "1.0"
+}

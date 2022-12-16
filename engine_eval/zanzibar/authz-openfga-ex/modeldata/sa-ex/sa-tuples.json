@@ -1,0 +1,29 @@
+{
+    "writes":
+        {
+            "tuple_keys": [
+                {
+                    "object": "group:aspian-metrics-read",
+                    "relation": "member",
+                    "user": "srvcaccnt1-aspian"
+                },
+                {
+                    "object": "metrics:read",
+                    "relation": "read",
+                    "user": "group:aspian-metrics-read#member"
+                },
+                {
+                    "object": "org:aspian",
+                    "relation": "member",
+                    "user": "group:aspian-metrics-read"
+                },
+                {
+                    "object": "org:aspian",
+                    "relation": "orgid",
+                    "user": "srvcaccnt1-aspian"
+                    
+                }
+            ]
+    }
+}
+
