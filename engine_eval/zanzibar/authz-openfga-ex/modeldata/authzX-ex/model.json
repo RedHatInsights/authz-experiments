@@ -1,0 +1,181 @@
+{
+    "type_definitions": [
+      {
+        "type": "tenant",
+        "relations": {
+          "can_create": {
+            "union": {
+              "child": [
+                {
+                  "this": {}
+                },
+                {
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "member"
+                  }
+                }
+              ]
+            }
+          },
+          "can_delete": {
+            "union": {
+              "child": [
+                {
+                  "this": {}
+                },
+                {
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "member"
+                  }
+                }
+              ]
+            }
+          },
+          "can_get": {
+            "union": {
+              "child": [
+                {
+                  "this": {}
+                },
+                {
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "member"
+                  }
+                }
+              ]
+            }
+          },
+          "can_list": {
+            "union": {
+              "child": [
+                {
+                  "this": {}
+                },
+                {
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "member"
+                  }
+                }
+              ]
+            }
+          },
+          "member": {
+            "this": {}
+          }
+        }
+      },
+      {
+        "type": "group",
+        "relations": {
+          "member": {
+            "this": {}
+          }
+        }
+      },
+      {
+        "type": "subject",
+        "relations": {
+          "member": {
+            "union": {
+              "child": [
+                {
+                  "this": {}
+                },
+                {
+                  "tupleToUserset": {
+                    "tupleset": {
+                      "object": "",
+                      "relation": "tenant"
+                    },
+                    "computedUserset": {
+                      "object": "",
+                      "relation": "member"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "tenant": {
+            "this": {}
+          }
+        }
+      },
+      {
+        "type": "workspace",
+        "relations": {
+          "resource": {
+            "this": {}
+          }
+        }
+      },
+      {
+        "type": "resource",
+        "relations": {
+          "type": {
+            "this": {}
+          }
+        }
+      },
+      {
+        "type": "service",
+        "relations": {
+          "owner": {
+            "this": {}
+          },
+          "instance": {
+            "this": {}
+          },
+          "type": {
+            "this": {}
+          }
+        }
+      },
+      {
+        "type": "serviceinstance",
+        "relations": {
+          "member": {
+            "this": {}
+          },
+          "owner": {
+            "this": {}
+          },
+          "can_read": {
+            "union": {
+              "child": [
+                {
+                  "this": {}
+                },
+                {
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "member"
+                  }
+                }
+              ]
+            }
+          },
+          "can_write": {
+            "union": {
+              "child": [
+                {
+                  "this": {}
+                },
+                {
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "member"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "schema_version": "1.0"
+  }

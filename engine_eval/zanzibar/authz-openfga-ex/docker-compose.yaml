@@ -39,7 +39,7 @@ services:
       - openfga
 
   openfga:
-    image: openfga/openfga
+    image: openfga/openfga:latest
     environment:
       - OPENFGA_DATASTORE_ENGINE=postgres
       - OPENFGA_DATASTORE_URI=postgres://postgres:password@db:5432/openfga
