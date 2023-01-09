@@ -15,9 +15,9 @@ export OPENFGA_API_HOST="0.0.0.0:8080" //openfga running on localhost:8001 (play
 Run on non-go path enable the go modules
 `export GO111MODULE=on`
 
-## Auhtmodel Data
+## Authmodel Data
 
-You can use the existing Json file in modeldata folder, or create a new one for your test model (for model, tuples, assertions)
+You can use the existing Json file in the modeldata folder, or create a new one for your test model (for model, tuples, assertions)
 and export the same as follows
 ```
 export OPENFGA_AUTH_MODEL_JSON_FILE="path-to-model.json-file"
