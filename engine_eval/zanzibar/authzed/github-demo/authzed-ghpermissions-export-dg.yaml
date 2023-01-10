@@ -10,7 +10,7 @@ schema: |-
       permission member = maintainer + direct_member
 
       // same name as in organization to allow polymorphism
-  	  permission change_team_name = maintainer + parent->change_team_name
+      permission change_team_name = maintainer + parent->change_team_name
     }
 
     definition organization {
@@ -25,41 +25,41 @@ schema: |-
       // Org settings
       permission manage_billing = owner + billing_manager
 
-  	  // Team permissions
-  	  permission change_team_name = team_maintainer + owner
+      // Team permissions
+      permission change_team_name = team_maintainer + owner
     }
 
     definition repository {
-    	relation organization: organization
+      relation organization: organization
 
-    	// Repository roles
-    	relation maintainer: user | team#member
-    	relation reader: user | team#member
-    	relation writer: user | team#member
-    	relation triager: user | team#member
-    	relation admin: user | team#member
+      // Repository roles
+      relation maintainer: user | team#member
+      relation reader: user | team#member
+      relation writer: user | team#member
+      relation triager: user | team#member
+      relation admin: user | team#member
 
-    	// Git actions
-    	permission clone = reader + triager + push
-    	permission push = writer + maintainer + admin + organization->owner
+      // Git actions
+      permission clone = reader + triager + push
+      permission push = writer + maintainer + admin + organization->owner
 
-    	// Web actions
-    	permission read = reader + triager + writer + maintainer + admin + organization->owner
-    	permission delete_repository = admin + organization->owner
+      // Web actions
+      permission read = reader + triager + writer + maintainer + admin + organization->owner
+      permission delete_repository = admin + organization->owner
 
-    	// Issues
-    	permission create_issue = read
-    	permission close_issue = triager + writer + maintainer + admin + organization->owner
+      // Issues
+      permission create_issue = read
+      permission close_issue = triager + writer + maintainer + admin + organization->owner
 
-    	// Pull requests
-    	permission create_pr = read
-    	permission merge_pr = maintainer + organization->owner
-    	permission close_pr = triager + writer + maintainer + admin + organization->owner
+      // Pull requests
+      permission create_pr = read
+      permission merge_pr = maintainer + organization->owner
+      permission close_pr = triager + writer + maintainer + admin + organization->owner
 
-    	// Coarse grained
-    	permission manage_setting = maintainer + admin + organization->owner
-    	permission manage_sensitive_setting = admin + organization->owner
-    	permission manage_billing = admin + organization->owner
+      // Coarse grained
+      permission manage_setting = maintainer + admin + organization->owner
+      permission manage_sensitive_setting = admin + organization->owner
+      permission manage_billing = admin + organization->owner
     }
 relationships: |+
   repository:authz_experiments#organization@organization:redhat#...
