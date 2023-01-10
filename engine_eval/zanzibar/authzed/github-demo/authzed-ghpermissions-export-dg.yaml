@@ -2,28 +2,28 @@ schema: |-
   definition user {}
 
     definition team {
-  	  // relation organization: organization changed to line below to nestbe able to nest teams into other teams
-  	  relation parent: organization | team
-    	relation maintainer: user
-    	relation direct_member: user
+      // relation organization: organization changed to line below to nestbe able to nest teams into other teams
+      relation parent: organization | team
+      relation maintainer: user
+      relation direct_member: user
 
-    	permission member = maintainer + direct_member
+      permission member = maintainer + direct_member
 
       // same name as in organization to allow polymorphism
   	  permission change_team_name = maintainer + parent->change_team_name
     }
 
     definition organization {
-    	relation owner: user
-    	relation member: user
-    	relation billing_manager: user
-    	relation team_maintainer: user
+      relation owner: user
+      relation member: user
+      relation billing_manager: user
+      relation team_maintainer: user
 
-    	// Repository control plane
-    	permission create_repository = owner + member
+      // Repository control plane
+      permission create_repository = owner + member
 
-    	// Org settings
-    	permission manage_billing = owner + billing_manager
+      // Org settings
+      permission manage_billing = owner + billing_manager
 
   	  // Team permissions
   	  permission change_team_name = team_maintainer + owner
