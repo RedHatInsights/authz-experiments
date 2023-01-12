@@ -1,0 +1,167 @@
+schema: |
+  definition user {}
+  definition anonymous_user {}
+
+  definition organization {
+    relation member : user
+    
+    permission create_group = nil
+  }
+
+  definition group {
+    //a group is a part of an org
+    relation organization:organization
+    
+    relation owner: user | group#member
+    relation manager: user | group#member
+    relation direct_member : user | group#member
+    
+    relation banned : user 
+    permission can_be_banned =  member - owner
+    
+    // Synthetic aggregate because we can't use the + operator in relations
+    permission member = (owner + manager + direct_member) - banned
+    
+    // keep track of who is able to search for the google group, this could be dynamic 
+    relation searchers : organization#member
+    
+    // if we wanted to always allow all members of an org to search for the group, this would've been permission view_in_search = organization->member
+    permission view_in_search = (member + searchers) - banned 
+    
+    // joining options
+    relation invited : user
+    relation pending: user
+    relation direct_joiners : organization#member
+    relation askers : organization#member
+    permission ask_to_join = askers - direct_join - member - pending - banned//remove direct joiners and actual members from askers as it makes no sense to ask if you can directly join
+    permission direct_join = (invited + direct_joiners) - member - banned
+    
+    // view conversations
+    relation viewers: group#manager | group#member | organization#member
+    permission view_group_conversations = (owner + viewers) - banned
+    
+    // post conversations
+    relation posters: group#manager | group#member | organization#member | user:* | anonymous_user:* // user:* means "anyone logged in", anonymous means anyone.
+    permission post = (owner + posters) - banned
+    
+    //view members
+    relation members_viewers: group#manager | group#member | organization#member
+    permission view_group_members = (owner + members_viewers) - banned 
+    
+    permission add_member = owner + (manager - banned)
+    permission remove_member = add_member
+    permission add_manager = (owner + manager) - banned
+    permission remove_manager = add_manager
+    permission add_owner = owner - banned
+    permission remove_owner = add_owner
+    permission ban_user = owner + (manager - banned)
+    permission unban_user = ban_user
+  }
+
+relationships: |+
+  //org users
+  organization:redhat#member@user:dominik
+  organization:redhat#member@user:alec
+  organization:redhat#member@user:raj
+  organization:redhat#member@user:jay
+  organization:redhat#member@user:josh
+  organization:redhat#member@user:troll
+
+  group:ciam-authzx#organization@organization:redhat
+  group:ciam-authzx#owner@user:dominik
+  group:ciam-authzx#manager@user:jay
+  //invite any user. not org related.
+  group:ciam-authzx#invited@user:raj 
+
+  //test another group as manager of the authx group
+  group:prodsec#owner@user:josh
+  group:ciam-authzx#manager@group:prodsec#member
+
+  //add user to banned users
+  group:ciam-authzx#banned@user:troll
+  // uncomment to see changes when banned: group:ciam-authzx#banned@user:jay
+
+  //allow any member of redhat org to search for the group
+  group:ciam-authzx#searchers@organization:redhat#member
+
+  //allow any user of the redhat org to ask to join
+  group:ciam-authzx#askers@organization:redhat#member
+
+  // allow any user in org redhat to join without asking
+  group:ciam-authzx#direct_joiners@organization:redhat#member
+
+  //allow org members to read conversations
+  group:ciam-authzx#viewers@organization:redhat#member
+
+  //write this rel to allow any registered user to post to the group
+  group:ciam-authzx#posters@user:*
+
+  //write this rel to allow any anonymous random user to post to the group
+  group:ciam-authzx#posters@anonymous_user:*
+
+  //write this rel to allow a group's manager to view members of the group
+  group:ciam-authzx#members_viewers@group:ciam-authzx#manager
+
+assertions:
+  assertTrue:
+    - group:ciam-authzx#post@user:dominik
+    - group:ciam-authzx#post@user:randomjanedoe
+    - group:ciam-authzx#post@anonymous_user:FOOBAR
+  assertFalse:
+    - null
+validation:
+  group:ciam-authzx#add_manager:
+    - "[group:prodsec#member] is <group:ciam-authzx#manager>"
+    - "[user:dominik] is <group:ciam-authzx#owner>"
+    - "[user:josh] is <group:prodsec#owner>"
+  group:ciam-authzx#add_member:
+    - "[group:prodsec#member] is <group:ciam-authzx#manager>"
+    - "[user:dominik] is <group:ciam-authzx#owner>"
+    - "[user:josh] is <group:prodsec#owner>"
+  group:ciam-authzx#add_owner:
+    - "[user:dominik] is <group:ciam-authzx#owner>"
+  group:ciam-authzx#ask_to_join: []
+  group:ciam-authzx#ban_user:
+    - "[group:prodsec#member] is <group:ciam-authzx#manager>"
+    - "[user:dominik] is <group:ciam-authzx#owner>"
+    - "[user:josh] is <group:prodsec#owner>"
+  group:ciam-authzx#direct_join:
+    - "[organization:redhat#member] is <group:ciam-authzx#direct_joiners>"
+    - "[user:alec] is <organization:redhat#member>"
+    - "[user:raj] is <group:ciam-authzx#invited>/<organization:redhat#member>"
+  group:ciam-authzx#post:
+    - "[anonymous_user:*] is <group:ciam-authzx#posters>"
+    - "[user:* - {user:jay, user:troll}] is <group:ciam-authzx#posters>"
+    - "[user:dominik] is <group:ciam-authzx#owner>"
+  group:ciam-authzx#remove_manager:
+    - "[group:prodsec#member] is <group:ciam-authzx#manager>"
+    - "[user:dominik] is <group:ciam-authzx#owner>"
+    - "[user:josh] is <group:prodsec#owner>"
+  group:ciam-authzx#remove_member:
+    - "[group:prodsec#member] is <group:ciam-authzx#manager>"
+    - "[user:dominik] is <group:ciam-authzx#owner>"
+    - "[user:josh] is <group:prodsec#owner>"
+  group:ciam-authzx#remove_owner:
+    - "[user:dominik] is <group:ciam-authzx#owner>"
+  group:ciam-authzx#unban_user:
+    - "[group:prodsec#member] is <group:ciam-authzx#manager>"
+    - "[user:dominik] is <group:ciam-authzx#owner>"
+    - "[user:josh] is <group:prodsec#owner>"
+  group:ciam-authzx#view_group_conversations:
+    - "[organization:redhat#member] is <group:ciam-authzx#viewers>"
+    - "[user:alec] is <organization:redhat#member>"
+    - "[user:dominik] is <group:ciam-authzx#owner>/<organization:redhat#member>"
+    - "[user:josh] is <organization:redhat#member>"
+    - "[user:raj] is <organization:redhat#member>"
+  group:ciam-authzx#view_group_members:
+    - "[group:ciam-authzx#manager] is <group:ciam-authzx#members_viewers>"
+    - "[group:prodsec#member] is <group:ciam-authzx#manager>"
+    - "[user:dominik] is <group:ciam-authzx#owner>"
+    - "[user:josh] is <group:prodsec#owner>"
+  group:ciam-authzx#view_in_search:
+    - "[group:prodsec#member] is <group:ciam-authzx#manager>"
+    - "[organization:redhat#member] is <group:ciam-authzx#searchers>"
+    - "[user:alec] is <organization:redhat#member>"
+    - "[user:dominik] is <group:ciam-authzx#owner>/<organization:redhat#member>"
+    - "[user:josh] is <group:prodsec#owner>/<organization:redhat#member>"
+    - "[user:raj] is <organization:redhat#member>"
