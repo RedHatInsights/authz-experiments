@@ -1,0 +1,75 @@
+schema: |-
+  definition subject {}
+
+  definition tenant {
+      relation member : subject 
+  }
+
+  definition group {
+      relation member : subject
+  }
+
+  definition role {
+      relation assigned_group: group
+
+      permission member = assigned_group->member
+  }
+
+  definition application {
+      relation all_readers: role
+      relation all_writers: role
+      relation all_verbers: role
+
+      permission read_all = all_readers->member + all_verbers->member
+      permission write_all = all_writers->member + all_verbers->member
+  }
+
+  definition resource_type {
+      relation app: application
+      relation readers: role
+      relation writers: role
+      relation all_verbers: role
+
+      permission read = readers->member + all_verbers->member + app->read_all
+      permission write = writers->member + all_verbers->member + app->write_all
+  }
+
+  // GIVEN alec is a member of redhat and a member of group CIAM and members of group ciam have the role AdvisorUser, and AdvisorUser role has permission to "read" resource_type Export
+  // WHEN the check call happens if he can read resource_type Export on application:Advisor
+  // THEN this should allow access 
+relationships: |-
+  tenant:redhat#member@subject:alec
+  tenant:redhat#member@subject:dave
+  group:ciam#member@subject:alec
+  group:advisor-support#member@subject:dave
+  group:advisor-dev#member@subject:allison
+  role:advisor-admins#assigned_group@group:advisor-dev
+  role:export-management#assigned_group@group:advisor-support
+  role:export-users#assigned_group@group:ciam
+  resource_type:advisor-export#app@application:advisor
+  resource_type:advisor-export#readers@role:export-users
+  resource_type:advisor-export#all_verbers@role:export-management
+  application:advisor#all_verbers@role:advisor-admins
+assertions:
+  assertTrue:
+    - tenant:redhat#member@subject:alec
+    - group:ciam#member@subject:alec
+    - resource_type:advisor-export#read@subject:alec
+    - resource_type:advisor-export#read@subject:dave
+    - resource_type:advisor-export#write@subject:dave
+    - resource_type:advisor-export#read@subject:allison
+    - resource_type:advisor-export#write@subject:allison
+  assertFalse:
+    - tenant:foo#member@subject:alec
+    - resource_type:advisor-export#write@subject:alec
+validation:
+  resource_type:advisor-export#read:
+    - "[subject:alec] is <group:ciam#member>"
+    - "[subject:allison] is <group:advisor-dev#member>"
+    - "[subject:dave] is <group:advisor-support#member>"
+  resource_type:advisor-export#write:
+    - "[subject:allison] is <group:advisor-dev#member>"
+    - "[subject:dave] is <group:advisor-support#member>"
+  tenant:redhat#member:
+    - "[subject:alec] is <tenant:redhat#member>"
+    - "[subject:dave] is <tenant:redhat#member>"
