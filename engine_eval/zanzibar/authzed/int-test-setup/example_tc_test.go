@@ -21,7 +21,7 @@ type spicedbContainer struct {
 	MappedPort string
 }
 
-func TestAuthzedTcExample(t *testing.T) {
+func TestSpiceDbTcExample(t *testing.T) {
 	if testing.Short() {
 		t.Skip("-test.short flag set, skipping integration test")
 	}
@@ -29,7 +29,6 @@ func TestAuthzedTcExample(t *testing.T) {
 	ctx := context.Background()
 	spicedbContainer, err := setupSpiceDb(ctx, t)
 	port := spicedbContainer.MappedPort
-
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,12 +101,15 @@ func setupSpiceDb(ctx context.Context, t *testing.T) (*spicedbContainer, error) 
 	}
 
 	uri := fmt.Sprintf("http://%s:%s", ip, mappedPort.Port())
-	defer func() {
-		if err := container.Terminate(ctx); err != nil {
-			t.Fatalf("failed to terminate container: %s", err.Error())
-		}
-	}()
-
+	t.Logf(uri)
+	/*
+		// not sure why for now, test goes into endless loop when using this deferred func for container termination, maybe bc parallel,
+		// but no change when removing t.Parallel() so commented out for now.
+		defer func() {
+			if err := container.Terminate(ctx); err != nil {
+				t.Fatalf("failed to terminate container: %s", err.Error())
+			}
+		}()*/
 	return &spicedbContainer{Container: container, URI: uri, MappedPort: mappedPort.Port()}, nil
 }
 
