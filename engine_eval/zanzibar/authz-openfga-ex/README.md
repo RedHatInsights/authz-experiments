@@ -38,6 +38,3 @@ To run a specific test (since multiple models are there - you need to run only y
 Go to the test folder ex: authz-openfga-ex/test
 go test <filename-to-test>
 ```
-
-
-test
