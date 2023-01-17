@@ -11,3 +11,6 @@ This demonstrates how to perform integration tests against SpiceDB using docker 
 - add GHA Workflow
 ## Based on:
 https://github.com/authzed/examples/tree/main/integration-testing
+
+
+Test 1: build should run
