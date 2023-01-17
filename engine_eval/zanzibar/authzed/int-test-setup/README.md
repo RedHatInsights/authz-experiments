@@ -7,10 +7,9 @@ This demonstrates how to perform integration tests against SpiceDB using docker 
 3) Run tests. Tests with different keys are safe to run in parallel.
 
 ## TODO
-- add scheme from YAML, see how to automate e.g. running assertions etc
-- add GHA Workflow
+- add a real test/scheme from YAML, see how to automate e.g. running assertions etc
+
 ## Based on:
 https://github.com/authzed/examples/tree/main/integration-testing
 
 
-Test 1.1: build should run as texxt is altered.
