@@ -81,15 +81,14 @@ func getPermissions(client *authzed.Client, userId string) ([]string, error) {
 	for {
 		response, err := lookupClient.Recv()
 
-		if err != nil {
-			if err == io.EOF {
-				return objectIds, nil
-			} else {
-				return nil, err
-			}
+		switch {
+		case errors.Is(err, io.EOF):
+			return objectIds, nil
+		case err != nil:
+			return nil, err
+		default:
+			objectIds = append(objectIds, response.ResourceObjectId)
 		}
-
-		objectIds = append(objectIds, response.ResourceObjectId)
 	}
 }
 
@@ -111,18 +110,17 @@ func getFilters(client *authzed.Client, userId string) (map[string][]string, err
 	for {
 		response, err := lookupClient.Recv()
 
-		if err != nil {
-			if err == io.EOF {
-				return permissionsToFilters, nil
-			} else {
-				return nil, err
-			}
-		}
-
-		if permission, filter, err := parseFilterId(response.ResourceObjectId); err != nil {
+		switch {
+		case errors.Is(err, io.EOF):
+			return permissionsToFilters, nil
+		case err != nil:
 			return nil, err
-		} else {
-			permissionsToFilters[permission] = append(permissionsToFilters[permission], filter)
+		default:
+			if permission, filter, err := parseFilterId(response.ResourceObjectId); err != nil {
+				return nil, err
+			} else {
+				permissionsToFilters[permission] = append(permissionsToFilters[permission], filter)
+			}
 		}
 	}
 }
