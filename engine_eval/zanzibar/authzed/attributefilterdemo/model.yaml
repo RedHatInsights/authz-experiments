@@ -1,0 +1,64 @@
+schema: |-
+  definition principal {}
+
+  definition group {
+      relation principal: principal
+
+      permission member = principal
+  }
+
+  definition role {
+      relation group: group
+
+      permission member = group->member
+  }
+
+  definition access {
+      relation role: role
+
+      permission granted = role->member
+  }
+
+  definition filter {
+      relation role: role
+
+      permission applies = role->member
+  }
+relationships: |-
+  // Some example relationships
+
+  //export-users case
+  group:ciam#principal@principal:alec
+  role:export-users#group@group:ciam
+  group:export-users#principal@principal:eddy
+  access:advisor_export_read#role@role:export-users
+  filter:advisor_export_read__scope_equal_group#role@role:export-users
+
+
+
+  //playbook dispatcher case
+  role:sso-admins#group@group:ciam
+  access:sso_any_any#role@role:sso-admins
+  access:playbook-dispatcher_runs_read#role@role:sso-admins
+
+  filter:playbook-dispatcher_runs_read__service_equal_sso#role@role:sso-admins
+
+  role:export-users#group@group:export-users
+  access:export_read_any#role@role:export-users
+
+  filter:export_read_any__scope_equal_user#role@role:export-users
+assertions:
+  assertTrue:
+    - null
+  assertFalse:
+    - null
+validation:
+  access:advisor_export_read#granted:
+    - "[principal:alec] is <group:ciam#principal>"
+    - "[principal:eddy] is <group:export-users#principal>"
+  filter:advisor_export_read__scope_equal_group#applies:
+    - "[principal:alec] is <group:ciam#principal>"
+    - "[principal:eddy] is <group:export-users#principal>"
+  filter:export_read_any__scope_equal_user#applies:
+    - "[principal:alec] is <group:ciam#principal>"
+    - "[principal:eddy] is <group:export-users#principal>"
