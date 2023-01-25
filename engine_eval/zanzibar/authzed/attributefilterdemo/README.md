@@ -11,6 +11,6 @@
 * Run a local instance of SpiceDB: ```$ docker run --name spicedb     -p 50051:50051     --rm     authzed/spicedb serve     --grpc-preshared-key "somerandomkeyhere"```
 * Install Zed (https://github.com/authzed/zed)
 * Configure Zed: ```$ zed context set local localhost:50051 "somerandomkeyhere" --insecure```
-* Import the model: ```$ zed import https://play.authzed.com/s/xzsTAbFqjoJn/relationships```
+* Import the model: ```$ zed import https://play.authzed.com/s/1YodgNDHqHoL/relationships```
 * Compile the code: ```$ go build src/main.go```
 * Run the program to analyze a user: ```$ ./main {user}``` where {user} is a username from the model (currently alec or eddy)

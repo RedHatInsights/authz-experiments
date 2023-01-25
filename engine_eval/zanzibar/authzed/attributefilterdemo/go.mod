@@ -5,6 +5,8 @@ go 1.18
 require (
 	github.com/authzed/authzed-go v0.7.0
 	github.com/authzed/grpcutil v0.0.0-20230109193425-40ce0530e048
+	golang.org/x/net v0.0.0-20220812174116-3211cb980234
+	google.golang.org/grpc v1.49.0
 )
 
 require (
@@ -17,11 +19,9 @@ require (
 	github.com/jzelinskie/stringz v0.0.0-20210414224931-d6a8ce844a70 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/testify v1.8.0 // indirect
-	golang.org/x/net v0.0.0-20220812174116-3211cb980234 // indirect
 	golang.org/x/sys v0.0.0-20220818161305-2296e01440c6 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/genproto v0.0.0-20220822174746-9e6da59bd2fc // indirect
-	google.golang.org/grpc v1.49.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
