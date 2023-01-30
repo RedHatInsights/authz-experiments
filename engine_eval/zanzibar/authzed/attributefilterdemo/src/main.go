@@ -13,15 +13,17 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Provide a username as a commandline argument")
+	if len(os.Args) < 3 {
+		fmt.Println("Provide a username and an app as commandline arguments. Ex: ./main alec advisor")
 		return
 	}
 
 	userId := os.Args[1]
+	app := os.Args[2]
 
 	client, err := authzed.NewClient(
 		"localhost:50051",
@@ -34,13 +36,13 @@ func main() {
 		return
 	}
 
-	perms, err := getPermissions(client, userId)
+	perms, err := getPermissions(client, userId, app)
 	if err != nil {
 		fmt.Printf("Failed to get permissions: %s\n", err)
 		return
 	}
 
-	filters, err := getFilters(client, userId)
+	filters, err := getFilters(client, userId, app)
 	if err != nil {
 		fmt.Printf("Failed to get filters: %s\n", err)
 		return
@@ -50,7 +52,7 @@ func main() {
 		fmt.Printf("Permission: %s\n", decodePermission(perm))
 
 		if filters, ok := filters[perm]; ok {
-			fmt.Println("\tAssociated resource filters:")
+			fmt.Println("\tfilters:")
 
 			for _, filterName := range filters {
 				if filter, err := parseFilter(filterName); err != nil {
@@ -63,7 +65,7 @@ func main() {
 	}
 }
 
-func getPermissions(client *authzed.Client, userId string) ([]string, error) {
+func getPermissions(client *authzed.Client, userId string, app string) ([]string, error) {
 	ctx := context.Background()
 
 	var objectIds []string
@@ -72,6 +74,11 @@ func getPermissions(client *authzed.Client, userId string) ([]string, error) {
 		Subject:            userSubject(userId),
 		Permission:         "granted",
 		ResourceObjectType: "access",
+		Context: &structpb.Struct{
+			Fields: map[string]*structpb.Value{
+				"current_app": structpb.NewStringValue(app),
+			},
+		},
 	})
 
 	if err != nil {
@@ -92,7 +99,7 @@ func getPermissions(client *authzed.Client, userId string) ([]string, error) {
 	}
 }
 
-func getFilters(client *authzed.Client, userId string) (map[string][]string, error) {
+func getFilters(client *authzed.Client, userId string, app string) (map[string][]string, error) {
 	ctx := context.Background()
 
 	permissionsToFilters := make(map[string][]string)
@@ -101,6 +108,11 @@ func getFilters(client *authzed.Client, userId string) (map[string][]string, err
 		Subject:            userSubject(userId),
 		Permission:         "applies",
 		ResourceObjectType: "filter",
+		Context: &structpb.Struct{
+			Fields: map[string]*structpb.Value{
+				"current_app": structpb.NewStringValue(app),
+			},
+		},
 	})
 
 	if err != nil {
