@@ -1,0 +1,114 @@
+schema: |
+  definition user {
+      relation active : user
+      relation licensed_wsdm_user : user
+      permission is_active = active
+      permission is_activated_wsdm_user = active & licensed_wsdm_user
+  }
+
+  definition tenant {
+      relation parent : tenant //to evaluate.
+      relation owner: user 
+      relation direct_member: user 
+      relation billing_manager: user 
+      relation manager: user
+      relation potential_wsdm_user : user
+      relation licensed_user : user
+      permission membership = direct_member + owner + manager
+      permission wants_wsdm_access = potential_wsdm_user - licensed_user->is_activated_wsdm_user
+      permission manage_seats = owner + manager
+      permission delete_license = owner + billing_manager
+      permission is_owner = owner
+  }
+
+  definition product_instance {
+      relation tenant : tenant
+      relation wsdm_user : user
+      relation is_owner: tenant#is_owner
+
+      permission is_active_user = is_owner + wsdm_user->is_activated_wsdm_user
+  }
+relationships: |-
+  //activate users in general
+  user:owner1#active@user:owner1
+  user:user1#active@user:user1
+  user:user2#active@user:user2
+  user:user3#active@user:user3
+  user:user4#active@user:user4
+
+  // grant users for wsdm
+  user:owner1#licensed_wsdm_user@user:owner1
+  user:user1#licensed_wsdm_user@user:user1
+  user:user2#licensed_wsdm_user@user:user2
+  user:user3#licensed_wsdm_user@user:user3
+
+  // tenant1 userbind
+  tenant:customer1#owner@user:owner1
+  tenant:customer1#direct_member@user:user1
+  tenant:customer1#direct_member@user:user2
+  tenant:customer1#direct_member@user:user3
+
+  // inactive t1 wsdm user without active license
+  tenant:customer1#direct_member@user:user4
+  tenant:customer1#potential_wsdm_user@user:user4
+
+  // assign wsdm instance to tenant t1
+  product_instance:p1#tenant@tenant:customer1
+
+  // assign users to instance
+  product_instance:p1#wsdm_user@user:user1
+  product_instance:p1#wsdm_user@user:owner1
+  product_instance:p1#wsdm_user@user:user2
+  product_instance:p1#wsdm_user@user:user3
+  product_instance:p1#wsdm_user@user:user4
+
+
+  //tenant 2 general activation of users to be able to deactivate them (delete)
+  user:t2owner#active@user:t2owner
+  user:t2user1#active@user:t2user1
+  user:t2user2#active@user:t2user2
+  user:t2user3#active@user:t2user3
+
+  // tenant 2 grant licenses to users
+  user:t2owner#licensed_wsdm_user@user:t2owner
+  user:t2user1#licensed_wsdm_user@user:t2user1
+  user:t2user2#licensed_wsdm_user@user:t2user2
+
+  // tenant 2 userbinding
+  tenant:customer2#owner@user:t2owner
+  tenant:customer2#direct_member@user:t2user1
+  tenant:customer2#direct_member@user:t2user2
+
+  // inactive t2 user without active relation
+  tenant:customer2#direct_member@user:t2user3
+  tenant:customer2#potential_wsdm_user@user:t2user3
+
+  // assign wsdm instance to tenant t2
+  product_instance:p2#tenant@tenant:customer2
+
+  // assign users to instance
+  product_instance:p2#wsdm_user@user:t2owner
+  product_instance:p2#wsdm_user@user:t2user1
+  product_instance:p2#wsdm_user@user:t2user2
+  product_instance:p2#wsdm_user@user:t2user3
+assertions:
+  assertFalse:
+    - product_instance:p1#is_active_user@user:t2user1
+    - product_instance:p2#is_active_user@user:user1
+    - product_instance:p1#is_active_user@user:t2owner
+    - product_instance:p2#is_active_user@user:owner1
+    - tenant:tenant1#wants_wsdm_access@user:t2user3
+validation:
+  product_instance:p1#is_active_user:
+    - "[user:owner1] is <user:owner1#active>/<user:owner1#licensed_wsdm_user>"
+    - "[user:user1] is <user:user1#active>/<user:user1#licensed_wsdm_user>"
+    - "[user:user2] is <user:user2#active>/<user:user2#licensed_wsdm_user>"
+    - "[user:user3] is <user:user3#active>/<user:user3#licensed_wsdm_user>"
+  product_instance:p2#is_active_user:
+    - "[user:t2owner] is <user:t2owner#active>/<user:t2owner#licensed_wsdm_user>"
+    - "[user:t2user1] is <user:t2user1#active>/<user:t2user1#licensed_wsdm_user>"
+    - "[user:t2user2] is <user:t2user2#active>/<user:t2user2#licensed_wsdm_user>"
+  tenant:customer1#wants_wsdm_access:
+    - "[user:user4] is <tenant:customer1#potential_wsdm_user>"
+  tenant:customer2#wants_wsdm_access:
+    - "[user:t2user3] is <tenant:customer2#potential_wsdm_user>"
