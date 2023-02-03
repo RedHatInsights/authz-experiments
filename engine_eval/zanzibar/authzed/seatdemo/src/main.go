@@ -2,27 +2,54 @@ package main
 
 import (
 	"context"
-	"log"
-
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/authzed-go/v1"
 	"github.com/authzed/grpcutil"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"log"
+	"net/http"
 )
 
+type CheckConnectionResponse struct {
+	Message string `json:"message" xml:"message"`
+	Schema  string `json:"schema" xml:"schema"`
+}
+
 func main() {
+	// Echo instance
+	e := echo.New()
+
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+
+	// Routes
+	e.GET("/", hello)
+
+	// Start server
+	e.Logger.Fatal(e.Start(":3000"))
+}
+
+func hello(c echo.Context) error {
 	client, err := getSpiceDbApiClient("50051")
 
 	if err != nil {
 		log.Fatalf("unable to initialize client: %s", err)
 	}
 
-	checkConnection(client)
+	schema, err := checkSpiceDbConnection(client)
 
 	if err != nil {
-		log.Fatalf("unable to check for connection: %s", err)
+		log.Fatalf("unable to verify connection to spiceDB.")
 	}
+
+	ccresp := &CheckConnectionResponse{
+		Message: "Connection to spiceDB successfully established!",
+		Schema:  schema,
+	}
+	return c.JSON(http.StatusOK, ccresp)
 
 }
 
@@ -35,7 +62,7 @@ func getSpiceDbApiClient(port string) (*authzed.Client, error) {
 	return client, err
 }
 
-func checkConnection(client *authzed.Client) (schema string, err error) {
+func checkSpiceDbConnection(client *authzed.Client) (schema string, err error) {
 	ctx := context.Background()
 
 	schemaResponse, err := client.ReadSchema(ctx, &v1.ReadSchemaRequest{})

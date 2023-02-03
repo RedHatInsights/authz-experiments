@@ -32,13 +32,6 @@ func setupSpiceDb(ctx context.Context, t *testing.T) (*spicedbContainer, error) 
 		Image:        "authzed/spicedb:latest",
 		ExposedPorts: []string{"50051/tcp", "50052/tcp"},
 		WaitingFor:   wait.ForLog("grpc server started serving"),
-		/*Files: []testcontainers.ContainerFile{
-			{
-				HostFilePath:      "./testresources/model.yaml",
-				ContainerFilePath: "/model.yaml",
-				FileMode:          700,
-			},
-		},*/
 		Mounts: testcontainers.Mounts(
 			testcontainers.ContainerMount{
 				Source: testcontainers.GenericBindMountSource{HostPath: path.Join(basepath, "/testresources/model.yaml")},
@@ -82,7 +75,7 @@ func Test_checkConnection(t *testing.T) {
 		log.Fatalf("tilt: %s", err)
 	}
 	client, _ := getSpiceDbApiClient(db.MappedPort)
-	schema, err := checkConnection(client)
+	schema, err := checkSpiceDbConnection(client)
 
 	assert.True(t, strings.Contains(schema, "product_instance"))
 }
