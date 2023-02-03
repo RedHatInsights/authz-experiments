@@ -3,15 +3,18 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
-	"log"
+	"net/http"
+	"net/http/httptest"
 	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 type spicedbContainer struct {
@@ -72,10 +75,30 @@ func Test_checkConnection(t *testing.T) {
 	ctx := context.Background()
 	db, err := setupSpiceDb(ctx, t)
 	if err != nil {
-		log.Fatalf("tilt: %s", err)
+		t.Fatalf("tilt: %s", err)
 	}
 	client, _ := getSpiceDbApiClient(db.MappedPort)
 	schema, err := checkSpiceDbConnection(client)
 
 	assert.True(t, strings.Contains(schema, "product_instance"))
+}
+
+func Test_hello(t *testing.T) {
+	t.Skip("Connections to SpiceDB fail.")
+
+	ctx := context.Background()
+	_, err := setupSpiceDb(ctx, t)
+	if err != nil {
+		t.Fatalf("tilt: %s", err)
+	}
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", strings.NewReader(""))
+	rec := httptest.NewRecorder()
+	echo_ctx := e.NewContext(req, rec)
+
+	if assert.NoError(t, hello(echo_ctx)) {
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.True(t, strings.Contains("Connection to spiceDB successfully established!", rec.Body.String()))
+	}
 }

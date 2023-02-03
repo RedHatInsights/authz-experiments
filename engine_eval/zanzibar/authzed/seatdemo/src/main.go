@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"log"
+	"net/http"
+
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/authzed-go/v1"
 	"github.com/authzed/grpcutil"
@@ -9,8 +12,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"log"
-	"net/http"
 )
 
 type CheckConnectionResponse struct {
@@ -42,7 +43,8 @@ func hello(c echo.Context) error {
 	schema, err := checkSpiceDbConnection(client)
 
 	if err != nil {
-		log.Fatalf("unable to verify connection to spiceDB.")
+		c.Error(err)
+		return err
 	}
 
 	ccresp := &CheckConnectionResponse{
