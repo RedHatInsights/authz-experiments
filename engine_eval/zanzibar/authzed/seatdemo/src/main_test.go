@@ -84,8 +84,6 @@ func Test_checkConnection(t *testing.T) {
 }
 
 func Test_hello(t *testing.T) {
-	//t.Skip("Connections to SpiceDB fail.")
-
 	ctx := context.Background()
 	db, err := setupSpiceDb(ctx, t)
 	if err != nil {
