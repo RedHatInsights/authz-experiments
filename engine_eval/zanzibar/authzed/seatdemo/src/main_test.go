@@ -8,7 +8,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
-	"seatdemo/seatdemo/src/handler"
+	"seatdemo/handler"
 	"strings"
 	"testing"
 

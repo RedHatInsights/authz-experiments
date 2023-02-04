@@ -24,7 +24,7 @@ jobs:
         with:
           go-version: '1.19.x'
           cache: true
-          cache-dependency-path: ../go.sum
+          cache-dependency-path: /engine_eval/zanzibar/authzed/seatdemo/src
       - name: Install dependencies
         run: go get .
       - name: Build

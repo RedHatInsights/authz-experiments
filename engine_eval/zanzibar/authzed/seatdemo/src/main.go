@@ -1,10 +1,9 @@
 package main
 
 import (
-	"seatdemo/seatdemo/src/handler"
-
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"seatdemo/handler"
 )
 
 func main() {
