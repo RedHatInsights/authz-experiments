@@ -64,6 +64,6 @@ func checkSpiceDbConnection(client *authzed.Client) (schema string, err error) {
 	return
 }
 
-func SetPort(p string) {
+func SetPort(p string) { //TODO: refactor (i guess this is not idiomatic)
 	port = p
 }
