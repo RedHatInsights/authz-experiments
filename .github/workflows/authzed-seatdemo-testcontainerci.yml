@@ -1,8 +1,8 @@
-name: SpiceDB Testcontainers experiment Build
+name: SpiceDB seatdemo Build & Test
 on:
   push:
     paths:
-      - 'engine_eval/zanzibar/authzed/int-test-setup/**'
+      - 'engine_eval/zanzibar/authzed/seatdemo/**'
 
 concurrency:
   # Only run once for latest commit per ref and cancel other (previous) runs.
@@ -13,7 +13,7 @@ jobs:
   build_and_run_tests:
     runs-on: ubuntu-latest
     env:
-      working-directory: ./engine_eval/zanzibar/authzed/int-test-setup
+      working-directory: ./engine_eval/zanzibar/authzed/seatdemo
     defaults:
       run:
         working-directory: ${{ env.working-directory }}
@@ -28,4 +28,4 @@ jobs:
       - name: Build
         run: go build -v ./...
       - name: Test with the Go CLI
-        run: go test
+        run: go test ./...
