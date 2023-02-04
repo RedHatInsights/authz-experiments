@@ -19,6 +19,8 @@ type CheckConnectionResponse struct {
 	Schema  string `json:"schema" xml:"schema"`
 }
 
+var port string
+
 func main() {
 	// Echo instance
 	e := echo.New()
@@ -34,7 +36,7 @@ func main() {
 }
 
 func hello(c echo.Context) error {
-	client, err := getSpiceDbApiClient("50051")
+	client, err := getSpiceDbApiClient(port)
 
 	if err != nil {
 		log.Fatalf("unable to initialize client: %s", err)
@@ -75,4 +77,8 @@ func checkSpiceDbConnection(client *authzed.Client) (schema string, err error) {
 	schema = schemaResponse.SchemaText
 	log.Println(schema)
 	return
+}
+
+func setPort(p string) {
+	port = p
 }

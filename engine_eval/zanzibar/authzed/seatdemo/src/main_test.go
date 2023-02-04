@@ -84,14 +84,15 @@ func Test_checkConnection(t *testing.T) {
 }
 
 func Test_hello(t *testing.T) {
-	t.Skip("Connections to SpiceDB fail.")
+	//t.Skip("Connections to SpiceDB fail.")
 
 	ctx := context.Background()
-	_, err := setupSpiceDb(ctx, t)
+	db, err := setupSpiceDb(ctx, t)
 	if err != nil {
-		t.Fatalf("tilt: %s", err)
+		t.Fatalf("container not setup correctly: %s", err)
 	}
 
+	setPort(db.MappedPort)
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", strings.NewReader(""))
 	rec := httptest.NewRecorder()
@@ -99,6 +100,6 @@ func Test_hello(t *testing.T) {
 
 	if assert.NoError(t, hello(echo_ctx)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.True(t, strings.Contains("Connection to spiceDB successfully established!", rec.Body.String()))
+		assert.Contains(t, rec.Body.String(), "Connection to spiceDB successfully established")
 	}
 }
