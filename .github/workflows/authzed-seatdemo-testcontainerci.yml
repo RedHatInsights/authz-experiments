@@ -26,7 +26,7 @@ jobs:
           cache: true
           cache-dependency-path: "./engine_eval/zanzibar/authzed/seatdemo/src"
       - name: Install dependencies
-        run: go get .
+        run: go get ./...
       - name: Build
         run: go build -v ./...
       - name: Test with the Go CLI
