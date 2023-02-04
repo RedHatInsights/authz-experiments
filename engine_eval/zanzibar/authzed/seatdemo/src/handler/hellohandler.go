@@ -19,7 +19,10 @@ type CheckConnectionResponse struct {
 	Schema  string `json:"schema" xml:"schema"`
 }
 
-func HelloHandler(c echo.Context) error {
+func GetInfo(c echo.Context) error {
+	if port == "" {
+		port = "50051" //TODO
+	}
 	client, err := getSpiceDbApiClient(port)
 
 	if err != nil {
@@ -64,6 +67,6 @@ func checkSpiceDbConnection(client *authzed.Client) (schema string, err error) {
 	return
 }
 
-func SetPort(p string) {
+func SetPort(p string) { //TODO
 	port = p
 }

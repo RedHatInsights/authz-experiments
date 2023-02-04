@@ -29,13 +29,13 @@ func TestHelloHandler(t *testing.T) {
 	rec := httptest.NewRecorder()
 	echo_ctx := e.NewContext(req, rec)
 
-	if assert.NoError(t, HelloHandler(echo_ctx)) {
+	if assert.NoError(t, GetInfo(echo_ctx)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Contains(t, rec.Body.String(), "Connection to spiceDB successfully established")
 	}
 }
 
-type spicedbContainer struct {
+type spicedbContainer struct { //TODO: move out, instantiate only once etc
 	testcontainers.Container
 	URI        string
 	MappedPort string
@@ -50,6 +50,7 @@ func setupSpiceDb(ctx context.Context, t *testing.T) (*spicedbContainer, error) 
 	)
 
 	req := testcontainers.ContainerRequest{
+		Name:         "testspice",
 		Image:        "authzed/spicedb:latest",
 		ExposedPorts: []string{"50051/tcp", "50052/tcp"},
 		WaitingFor:   wait.ForLog("grpc server started serving"),
@@ -66,6 +67,7 @@ func setupSpiceDb(ctx context.Context, t *testing.T) (*spicedbContainer, error) 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
+		Reuse:            true,
 	})
 
 	if err != nil {

@@ -14,7 +14,9 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// Routes
-	e.GET("/", handler.HelloHandler)
+	e.GET("/", handler.GetInfo)
+	//userAccess
+	e.GET("/tenant/:tenant/user", handler.GetTenantUsers)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":3000"))

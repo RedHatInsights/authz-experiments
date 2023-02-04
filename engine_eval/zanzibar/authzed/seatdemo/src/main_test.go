@@ -84,7 +84,7 @@ func Test_hello(t *testing.T) {
 	rec := httptest.NewRecorder()
 	echo_ctx := e.NewContext(req, rec)
 	handler.SetPort(db.MappedPort)
-	if assert.NoError(t, handler.HelloHandler(echo_ctx)) {
+	if assert.NoError(t, handler.GetInfo(echo_ctx)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Contains(t, rec.Body.String(), "Connection to spiceDB successfully established")
 	}
