@@ -11,6 +11,34 @@ import (
 	"testing"
 )
 
+func TestGrantLicenseReturns409ForUserWithAlreadyActivatedLicense(t *testing.T) {
+	ctx := context.Background()
+	/*using one tc instance per test bc don't quite know how to create fixtures and stuff. concious technical debt for now. enlighten me ;)*/
+	db, err := setupSpiceDb(ctx, t)
+	if err != nil {
+		t.Fatalf("container not setup correctly: %s", err)
+	}
+
+	SetPort(db.MappedPort)
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/:pinstance/license", strings.NewReader("userId=user1"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded") //Q: are there no constants for this in go? //TODO: evaluate why binding in code does not return error when this header is not set...
+	rec := httptest.NewRecorder()
+
+	echoCtx := e.NewContext(req, rec)
+	echoCtx.SetPath("/tenant/:tenant/product/:pinstance/license")
+	echoCtx.SetParamNames("tenant", "pinstance")
+	echoCtx.SetParamValues("customer1", "p1")
+
+	err2 := GrantLicenseIfNotFull(echoCtx)
+	if assert.NotNil(t, err2) {
+		he, ok := err2.(*echo.HTTPError)
+		if ok {
+			assert.Equal(t, http.StatusConflict, he.Code)
+			assert.Contains(t, he.Message, "Already active license for user user1 found.")
+		}
+	}
+}
 func TestGrantLicenseReturns403ForUserNotMemberOfTenant(t *testing.T) {
 	ctx := context.Background()
 	/*using one tc instance per test bc don't quite know how to create fixtures and stuff. concious technical debt for now. enlighten me ;)*/

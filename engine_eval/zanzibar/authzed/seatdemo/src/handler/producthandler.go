@@ -102,7 +102,7 @@ func GrantLicenseIfNotFull(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Internal Server error.")
 	}
 
-	//TODO: this and the following check should be consolidated into one CheckPermissions, change model accordingly, should work, but not now..
+	// TODO: this and the following check should be consolidated into one CheckPermissions, change model accordingly, should work, but not now..
 	//check for tenant membership of user to grant stuff for.
 	subj := &v1.SubjectReference{Object: &v1.ObjectReference{
 		ObjectType: "user",
@@ -150,7 +150,7 @@ func GrantLicenseIfNotFull(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "uh oh.. "+err4.Error())
 	}
 
-	//check permissions: is user not already an activated wsdm user?!
+	//check permissions: is user not already activated wsdm user?!
 	if r.Permissionship != v1.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION {
 		return echo.NewHTTPError(http.StatusConflict, "Already active license for user "+grReq.UserId+" found.")
 	}
