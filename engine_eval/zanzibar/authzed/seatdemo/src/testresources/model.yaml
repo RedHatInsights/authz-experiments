@@ -4,6 +4,7 @@ schema: |
       relation licensed_wsdm_user : user
       permission is_active = active
       permission is_activated_wsdm_user = active & licensed_wsdm_user
+      permission is_not_activated_wsdm_user = active - licensed_wsdm_user
   }
 
   definition tenant {
@@ -35,7 +36,8 @@ relationships: |-
   user:user2#active@user:user2
   user:user3#active@user:user3
   user:user4#active@user:user4
-
+  user:user5#active@user:user5
+  
   // grant users for wsdm
   user:owner1#licensed_wsdm_user@user:owner1
   user:user1#licensed_wsdm_user@user:user1
@@ -47,6 +49,7 @@ relationships: |-
   tenant:customer1#direct_member@user:user1
   tenant:customer1#direct_member@user:user2
   tenant:customer1#direct_member@user:user3
+  tenant:customer1#direct_member@user:user5
 
   // inactive t1 wsdm user without active license
   tenant:customer1#direct_member@user:user4
@@ -90,14 +93,13 @@ relationships: |-
   product_instance:p2#wsdm_user@user:t2owner
   product_instance:p2#wsdm_user@user:t2user1
   product_instance:p2#wsdm_user@user:t2user2
-  product_instance:p2#wsdm_user@user:t2user3
 assertions:
   assertFalse:
     - product_instance:p1#is_active_user@user:t2user1
     - product_instance:p2#is_active_user@user:user1
     - product_instance:p1#is_active_user@user:t2owner
     - product_instance:p2#is_active_user@user:owner1
-    - tenant:tenant1#wants_wsdm_access@user:t2user3
+    - tenant:customer1#wants_wsdm_access@user:t2user3
 validation:
   product_instance:p1#is_active_user:
     - "[user:owner1] is <user:owner1#active>/<user:owner1#licensed_wsdm_user>"
