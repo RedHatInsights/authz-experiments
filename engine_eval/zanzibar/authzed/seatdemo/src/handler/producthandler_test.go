@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/kinbiko/jsonassert"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -10,6 +11,62 @@ import (
 	"strings"
 	"testing"
 )
+
+func TestGrantLicenseGrantsLicenseIfAllConditionsMet(t *testing.T) {
+	ctx := context.Background()
+	/*using one tc instance per test bc don't quite know how to create fixtures and stuff. concious technical debt for now. enlighten me ;)*/
+	db, err := setupSpiceDb(ctx, t)
+	if err != nil {
+		t.Fatalf("container not setup correctly: %s", err)
+	}
+
+	SetPort(db.MappedPort)
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/p1/license", strings.NewReader("userId=user5"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded") //Q: are there no constants for this in go?
+	rec := httptest.NewRecorder()
+
+	echoCtx := e.NewContext(req, rec)
+	echoCtx.SetPath("/tenant/:tenant/product/:pinstance/license")
+	echoCtx.SetParamNames("tenant", "pinstance")
+	echoCtx.SetParamValues("customer1", "p1")
+
+	//weird weird way of testing for errors in echo
+	if assert.NoError(t, GrantLicenseIfNotFull(echoCtx)) {
+		assert.Equal(t, http.StatusCreated, rec.Code)
+		ja := jsonassert.New(t)
+		// find some sort of payload
+		granted := true
+		reason := "Successfully granted a license for instance p1 to user5. Remaining: 0"
+		ja.Assertf(rec.Body.String(), `
+	{
+		"granted": %t,
+		"reason": "%s"
+	}`, granted, reason)
+	}
+
+	//cleanup bc container reuse.. TODO refactor
+	client, err := getSpiceDbApiClient(db.MappedPort)
+	client.DeleteRelationships(ctx, &v1.DeleteRelationshipsRequest{
+		RelationshipFilter: &v1.RelationshipFilter{
+			ResourceType:       "user",
+			OptionalResourceId: "user5",
+			OptionalRelation:   "licensed_wsdm_user",
+		},
+	})
+
+	client.DeleteRelationships(ctx, &v1.DeleteRelationshipsRequest{
+		RelationshipFilter: &v1.RelationshipFilter{
+			ResourceType:       "product_instance",
+			OptionalResourceId: "p1",
+			OptionalRelation:   "wsdm_user",
+			OptionalSubjectFilter: &v1.SubjectFilter{
+				SubjectType:       "user",
+				OptionalSubjectId: "user5",
+			},
+		},
+	})
+}
 
 func TestGrantLicenseReturns409ForUserWithAlreadyActivatedLicense(t *testing.T) {
 	ctx := context.Background()
@@ -21,8 +78,8 @@ func TestGrantLicenseReturns409ForUserWithAlreadyActivatedLicense(t *testing.T) 
 
 	SetPort(db.MappedPort)
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/:pinstance/license", strings.NewReader("userId=user1"))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded") //Q: are there no constants for this in go? //TODO: evaluate why binding in code does not return error when this header is not set...
+	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/p1/license", strings.NewReader("userId=user1"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded") //Q: are there no constants for this in go?
 	rec := httptest.NewRecorder()
 
 	echoCtx := e.NewContext(req, rec)
@@ -49,8 +106,8 @@ func TestGrantLicenseReturns403ForUserNotMemberOfTenant(t *testing.T) {
 
 	SetPort(db.MappedPort)
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/:pinstance/license", strings.NewReader("userId=t2user3"))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded") //Q: are there no constants for this in go? //TODO: evaluate why binding in code does not return error when this header is not set...
+	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/p1/license", strings.NewReader("userId=t2user3"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded") //Q: are there no constants for this in go?
 	rec := httptest.NewRecorder()
 
 	echoCtx := e.NewContext(req, rec)
@@ -79,7 +136,7 @@ func TestGrantLicenseRevokesGrantIfMaxReached(t *testing.T) {
 	SetPort(db.MappedPort)
 	e := echo.New()
 
-	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/:pinstance/license", strings.NewReader("userId=t2user3"))
+	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/p2/license", strings.NewReader("userId=t2user3"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded") //Q: are there no constants for this in go? //TODO: evaluate why binding in code does not return error when this header is not set...
 	rec := httptest.NewRecorder()
 
@@ -114,7 +171,7 @@ func TestGrantLicenseReturnsBadRequestWithoutBody(t *testing.T) {
 	SetPort(db.MappedPort)
 	e := echo.New()
 
-	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/:pinstance/license", strings.NewReader(""))
+	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/p1/license", strings.NewReader(""))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded") //Q: are there no constants for this in go?
 	rec := httptest.NewRecorder()
 
@@ -149,7 +206,7 @@ func TestGetLicenseReturnsListOfLicensedUsersForTenant(t *testing.T) {
 	SetPort(db.MappedPort)
 	e := echo.New()
 
-	req := httptest.NewRequest(http.MethodGet, "/tenant/customer1/product/:pinstance/license?callingName=owner1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/tenant/customer1/product/p1/license?callingName=owner1", nil)
 	rec := httptest.NewRecorder()
 
 	echoCtx := e.NewContext(req, rec)
@@ -184,7 +241,7 @@ func TestGetLicenseForbiddenForOtherTenant(t *testing.T) {
 	SetPort(db.MappedPort)
 	e := echo.New()
 
-	req := httptest.NewRequest(http.MethodGet, "/tenant/customer2/product/:pinstance/license?callingName=owner1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/tenant/customer2/product/p2/license?callingName=owner1", nil)
 	rec := httptest.NewRecorder()
 
 	echoCtx := e.NewContext(req, rec)
@@ -214,7 +271,7 @@ func TestGetLicenseForbiddenWithoutRightPermission(t *testing.T) {
 	SetPort(db.MappedPort)
 	e := echo.New()
 
-	req := httptest.NewRequest(http.MethodGet, "/tenant/customer2/product/:pinstance/license?callingName=user1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/tenant/customer2/product/p2/license?callingName=user1", nil)
 	rec := httptest.NewRecorder()
 
 	echoCtx := e.NewContext(req, rec)

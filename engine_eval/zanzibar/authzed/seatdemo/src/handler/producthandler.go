@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 var licenseMap = map[string]int{"p1": 5, "p2": 3}
@@ -20,7 +21,7 @@ type ProductLicense struct {
 
 type GrantLicenseResponse struct {
 	Granted bool   `json:"granted"`
-	Reason  string `json:"reason"`
+	Message string `json:"reason"`
 }
 
 type GrantLicenseRequest struct {
@@ -122,7 +123,7 @@ func GrantLicenseIfNotFull(c echo.Context) error {
 	})
 
 	if err3 != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "uh oh.. %s", err3)
+		return echo.NewHTTPError(http.StatusInternalServerError, "uh oh..")
 	}
 
 	//check permissions: is user member of tenant?
@@ -147,15 +148,15 @@ func GrantLicenseIfNotFull(c echo.Context) error {
 	})
 
 	if err4 != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "uh oh.. "+err4.Error())
+		return echo.NewHTTPError(http.StatusInternalServerError, "uh oh.. ")
 	}
 
 	//check permissions: is user not already activated wsdm user?!
 	if r.Permissionship != v1.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION {
 		return echo.NewHTTPError(http.StatusConflict, "Already active license for user "+grReq.UserId+" found.")
 	}
-
-	isFull, err5 := isLicenseFull(c, client, ctx)
+	pInstance := c.Param("pinstance")
+	isFull, currentCount, err5 := isLicenseFull(pInstance, c, client, ctx)
 
 	if err5 != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Internal Server error.")
@@ -164,25 +165,71 @@ func GrantLicenseIfNotFull(c echo.Context) error {
 	if isFull {
 		result := GrantLicenseResponse{
 			Granted: false,
-			Reason:  "Maximum seats exceeded. Please extend your license.",
+			Message: "Maximum seats exceeded. Please extend your license.",
 		}
 		//let's have day long discussions around HTTP status codes pls ;)
 		return c.JSON(http.StatusConflict, result)
 	}
 
-	//grant license: set is_activated_wsdm_user to user form postbody
-	return c.JSON(http.StatusOK, "mock")
+	updates := []*v1.RelationshipUpdate{
+		{
+			Operation: v1.RelationshipUpdate_OPERATION_TOUCH,
+			Relationship: &v1.Relationship{
+				Resource: &v1.ObjectReference{
+					ObjectType: "user",
+					ObjectId:   grReq.UserId,
+				},
+				Relation: "licensed_wsdm_user",
+				Subject: &v1.SubjectReference{
+					Object: &v1.ObjectReference{
+						ObjectType: "user",
+						ObjectId:   grReq.UserId,
+					},
+				},
+			},
+		}, {
+			Operation: v1.RelationshipUpdate_OPERATION_TOUCH,
+			Relationship: &v1.Relationship{
+				Resource: &v1.ObjectReference{
+					ObjectType: "product_instance",
+					ObjectId:   pInstance,
+				},
+				Relation: "wsdm_user",
+				Subject: &v1.SubjectReference{
+					Object: &v1.ObjectReference{
+						ObjectType: "user",
+						ObjectId:   grReq.UserId,
+					},
+				},
+			},
+		},
+	}
+
+	//grant license: set is_activated_wsdm_user to user from postbody, and add relation to product_instance from path
+	_, wrErr := client.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{
+		Updates:               updates,
+		OptionalPreconditions: nil,
+	})
+
+	if wrErr != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "uh oh.. "+wrErr.Error())
+	}
+
+	result := GrantLicenseResponse{
+		Granted: true,
+		Message: "Successfully granted a license for instance " + pInstance + " to " + grReq.UserId + ". Remaining: " + strconv.Itoa(licenseMap[pInstance]-currentCount-1),
+	}
+	return c.JSON(http.StatusCreated, result)
 }
 
 // sanity check if current < max licenses for tenant. Send 403 + reason: license full.
-func isLicenseFull(c echo.Context, client *authzed.Client, ctx context.Context) (bool, error) {
-	pInstance := c.Param("pinstance")
+func isLicenseFull(pInstance string, c echo.Context, client *authzed.Client, ctx context.Context) (bool, int, error) {
 	currCount, err := GetCurrentActiveLicenseCountForProductInstance(pInstance, client, ctx)
 	if err != nil {
-		return false, err
+		return false, currCount, err
 	}
 
-	return currCount >= licenseMap[pInstance]-1, nil
+	return currCount >= licenseMap[pInstance], currCount, nil
 }
 
 func GetCurrentActiveLicenseCountForProductInstance(pInstance string, client *authzed.Client, ctx context.Context) (int, error) {
