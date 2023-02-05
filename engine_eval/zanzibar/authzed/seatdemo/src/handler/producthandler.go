@@ -155,6 +155,7 @@ func GrantLicenseIfNotFull(c echo.Context) error {
 	if r.Permissionship != v1.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION {
 		return echo.NewHTTPError(http.StatusConflict, "Already active license for user "+grReq.UserId+" found.")
 	}
+
 	pInstance := c.Param("pinstance")
 	isFull, currentCount, err5 := isLicenseFull(pInstance, c, client, ctx)
 
@@ -171,6 +172,7 @@ func GrantLicenseIfNotFull(c echo.Context) error {
 		return c.JSON(http.StatusConflict, result)
 	}
 
+	// TODO could also be one call and one relation i guess, but not sure. discuss model :)
 	updates := []*v1.RelationshipUpdate{
 		{
 			Operation: v1.RelationshipUpdate_OPERATION_TOUCH,
