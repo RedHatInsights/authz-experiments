@@ -69,7 +69,13 @@ func GetLicenseInfoForProductInstance(c echo.Context) error {
 	}
 
 	pInstance := c.Param("pinstance")
-	//TODO: check if maxseat value for pInstance exist against map first, if not in map, bad request -> test.
+
+	//check for max seat existence
+	_, ok := licenseMap[pInstance]
+	if !ok {
+		return echo.NewHTTPError(http.StatusBadRequest, "No license found for product instance "+pInstance)
+	}
+
 	currentLicenseCount, err3 := GetCurrentActiveLicenseCountForProductInstance(pInstance, client, ctx)
 	if err3 != nil {
 		return echo.NewHTTPError(http.StatusForbidden, "Internal Server error occured. Please try again later.")
@@ -101,6 +107,12 @@ func GrantLicenseIfNotFull(c echo.Context) error {
 
 	if err2 != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Internal Server error.")
+	}
+	//check if we have a max value
+	pInstance := c.Param("pinstance")
+	_, ok := licenseMap[pInstance]
+	if !ok {
+		return echo.NewHTTPError(http.StatusBadRequest, "No license found for product instance "+pInstance)
 	}
 
 	// TODO: this and the following check should be consolidated into one CheckPermissions, change model accordingly, should work, but not now..
@@ -156,7 +168,6 @@ func GrantLicenseIfNotFull(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusConflict, "Already active license for user "+grReq.UserId+" found.")
 	}
 
-	pInstance := c.Param("pinstance")
 	isFull, currentCount, err5 := isLicenseFull(pInstance, c, client, ctx)
 
 	if err5 != nil {

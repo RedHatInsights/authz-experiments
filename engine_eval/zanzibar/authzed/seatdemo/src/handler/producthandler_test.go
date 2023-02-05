@@ -12,6 +12,36 @@ import (
 	"testing"
 )
 
+func TestGrantLicenseReturnsBadRequestWhenNoProductInstanceLicenseFound(t *testing.T) {
+	ctx := context.Background()
+	/*using one tc instance per test bc don't quite know how to create fixtures and stuff. concious technical debt for now. enlighten me ;)*/
+	db, err := setupSpiceDb(ctx, t)
+	if err != nil {
+		t.Fatalf("container not setup correctly: %s", err)
+	}
+
+	SetPort(db.MappedPort)
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/p9999/license", strings.NewReader("userId=user5"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded") //Q: are there no constants for this in go?
+	rec := httptest.NewRecorder()
+
+	echoCtx := e.NewContext(req, rec)
+	echoCtx.SetPath("/tenant/:tenant/product/:pinstance/license")
+	echoCtx.SetParamNames("tenant", "pinstance")
+	echoCtx.SetParamValues("customer1", "p9999") //p3 does not exist
+
+	err2 := GrantLicenseIfNotFull(echoCtx)
+
+	if assert.NotNil(t, err2) {
+		he, ok := err2.(*echo.HTTPError)
+		if ok {
+			assert.Equal(t, http.StatusBadRequest, he.Code)
+			assert.Contains(t, he.Message, "No license found for product instance p9999")
+		}
+	}
+}
+
 func TestGrantLicenseGrantsLicenseIfAllConditionsMet(t *testing.T) {
 	ctx := context.Background()
 	/*using one tc instance per test bc don't quite know how to create fixtures and stuff. concious technical debt for now. enlighten me ;)*/
@@ -31,7 +61,6 @@ func TestGrantLicenseGrantsLicenseIfAllConditionsMet(t *testing.T) {
 	echoCtx.SetParamNames("tenant", "pinstance")
 	echoCtx.SetParamValues("customer1", "p1")
 
-	//weird weird way of testing for errors in echo
 	if assert.NoError(t, GrantLicenseIfNotFull(echoCtx)) {
 		assert.Equal(t, http.StatusCreated, rec.Code)
 		ja := jsonassert.New(t)
@@ -88,6 +117,7 @@ func TestGrantLicenseReturns409ForUserWithAlreadyActivatedLicense(t *testing.T) 
 	echoCtx.SetParamValues("customer1", "p1")
 
 	err2 := GrantLicenseIfNotFull(echoCtx)
+
 	if assert.NotNil(t, err2) {
 		he, ok := err2.(*echo.HTTPError)
 		if ok {
@@ -195,6 +225,37 @@ func TestGrantLicenseReturnsBadRequestWithoutBody(t *testing.T) {
 *
 Get Licenses
 */
+
+func TestGetLicenseReturnsBadRequestIfNoLicenseFound(t *testing.T) {
+	ctx := context.Background()
+	/*using one tc instance per test bc don't quite know how to create fixtures and stuff. concious technical debt for now. enlighten me ;)*/
+	db, err := setupSpiceDb(ctx, t)
+	if err != nil {
+		t.Fatalf("container not setup correctly: %s", err)
+	}
+
+	SetPort(db.MappedPort)
+	e := echo.New()
+
+	req := httptest.NewRequest(http.MethodGet, "/tenant/customer2/product/p999/license?callingName=t2owner", nil)
+	rec := httptest.NewRecorder()
+
+	echoCtx := e.NewContext(req, rec)
+	echoCtx.SetPath("/tenant/:tenant/product/:pinstance/license")
+	echoCtx.SetParamNames("tenant", "pinstance")
+	echoCtx.SetParamValues("customer2", "p999")
+
+	//weird weird way of testing for errors in echo
+	err2 := GetLicenseInfoForProductInstance(echoCtx)
+	if assert.NotNil(t, err2) {
+		he, ok := err2.(*echo.HTTPError)
+		if ok {
+			assert.Equal(t, http.StatusBadRequest, he.Code)
+			assert.Contains(t, he.Message, "No license found for product instance p999")
+		}
+	}
+}
+
 func TestGetLicenseReturnsListOfLicensedUsersForTenant(t *testing.T) {
 	ctx := context.Background()
 	/*using one tc instance per test bc don't quite know how to create fixtures and stuff. concious technical debt for now. enlighten me ;)*/
