@@ -34,7 +34,7 @@ func TestGetLicenseReturnsListOfLicensedUsersForTenant(t *testing.T) {
 		ja := jsonassert.New(t)
 		// find some sort of payload
 		name := "p1"
-		active := 4
+		active := 4 //relations for owner1, user1, user2 and user3
 		max := 5
 		ja.Assertf(rec.Body.String(), `
 	{
