@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/labstack/echo/v4"
 	"io"
@@ -91,4 +92,8 @@ func GetLicensesForProductInstance(c echo.Context) error {
 		Max:    licenseMap[pInstance],
 	}
 	return c.JSON(http.StatusOK, result)
+}
+
+func GrantLicenseIfNotFull(c echo.Context) error {
+	return errors.New("to be implemented")
 }
