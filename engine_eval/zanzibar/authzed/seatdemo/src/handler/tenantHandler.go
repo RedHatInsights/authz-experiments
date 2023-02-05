@@ -16,7 +16,7 @@ type GetUserResponse struct {
 type GetUserResponses []GetUserResponse
 
 func GetTenantUsers(c echo.Context) error {
-	log.Println("Called GetTenantUsers!")
+
 	ctx := context.Background()
 	if port == "" {
 		port = "50051" //TODO
@@ -25,6 +25,7 @@ func GetTenantUsers(c echo.Context) error {
 
 	if err != nil {
 		log.Fatalf("unable to initialize client: %s", err)
+		return err
 	}
 
 	callingName := c.QueryParam("callingName")
