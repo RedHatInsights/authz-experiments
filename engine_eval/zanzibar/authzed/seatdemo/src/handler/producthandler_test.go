@@ -29,7 +29,7 @@ func TestGetLicenseReturnsListOfLicensedUsersForTenant(t *testing.T) {
 	echoCtx.SetParamNames("tenant", "pinstance")
 	echoCtx.SetParamValues("customer1", "p1")
 
-	if assert.NoError(t, GetLicensesForProductInstance(echoCtx)) {
+	if assert.NoError(t, GetLicenseInfoForProductInstance(echoCtx)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		ja := jsonassert.New(t)
 		// find some sort of payload
@@ -65,7 +65,7 @@ func TestGetLicenseForbiddenForOtherTenant(t *testing.T) {
 	echoCtx.SetParamValues("customer2", "p2")
 
 	//weird weird way of testing for errors in echo
-	err2 := GetLicensesForProductInstance(echoCtx)
+	err2 := GetLicenseInfoForProductInstance(echoCtx)
 	if assert.NotNil(t, err2) {
 		he, ok := err2.(*echo.HTTPError)
 		if ok {
@@ -95,7 +95,7 @@ func TestGetLicenseForbiddenWithoutRightPermission(t *testing.T) {
 	echoCtx.SetParamValues("customer2", "p2")
 
 	//weird weird way of testing for errors in echo
-	err2 := GetLicensesForProductInstance(echoCtx)
+	err2 := GetLicenseInfoForProductInstance(echoCtx)
 	if assert.NotNil(t, err2) {
 		he, ok := err2.(*echo.HTTPError)
 		if ok {

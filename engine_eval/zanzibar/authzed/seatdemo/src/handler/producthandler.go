@@ -16,7 +16,7 @@ type ProductLicense struct {
 	Max    int    `json:"max_seats" xml:"max_seats"`
 }
 
-func GetLicensesForProductInstance(c echo.Context) error {
+func GetLicenseInfoForProductInstance(c echo.Context) error {
 	licenseMap := map[string]int{"p1": 5, "p2": 4}
 
 	ctx := context.Background()

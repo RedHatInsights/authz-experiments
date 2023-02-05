@@ -19,7 +19,7 @@ func main() {
 	e.GET("/tenant/:tenant/user", handler.GetTenantUsers)
 
 	//product
-	e.GET("/tenant/:tenant/product/:pinstance/license", handler.GetTenantUsers)
+	e.GET("/tenant/:tenant/product/:pinstance/license", handler.GetLicenseInfoForProductInstance)
 	// Start server
 	e.Logger.Fatal(e.Start(":3000"))
 }
