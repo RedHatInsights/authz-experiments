@@ -21,12 +21,12 @@ func TestGrantLicenseReturns403ForUserNotMemberOfTenant(t *testing.T) {
 
 	SetPort(db.MappedPort)
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/:pinstance/grant", strings.NewReader("userId=t2user3"))
+	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/:pinstance/license", strings.NewReader("userId=t2user3"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded") //Q: are there no constants for this in go? //TODO: evaluate why binding in code does not return error when this header is not set...
 	rec := httptest.NewRecorder()
 
 	echoCtx := e.NewContext(req, rec)
-	echoCtx.SetPath("/tenant/:tenant/product/:pinstance/grant")
+	echoCtx.SetPath("/tenant/:tenant/product/:pinstance/license")
 	echoCtx.SetParamNames("tenant", "pinstance")
 	echoCtx.SetParamValues("customer1", "p1")
 
@@ -51,12 +51,12 @@ func TestGrantLicenseRevokesGrantIfMaxReached(t *testing.T) {
 	SetPort(db.MappedPort)
 	e := echo.New()
 
-	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/:pinstance/grant", strings.NewReader("userId=t2user3"))
+	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/:pinstance/license", strings.NewReader("userId=t2user3"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded") //Q: are there no constants for this in go? //TODO: evaluate why binding in code does not return error when this header is not set...
 	rec := httptest.NewRecorder()
 
 	echoCtx := e.NewContext(req, rec)
-	echoCtx.SetPath("/tenant/:tenant/product/:pinstance/grant")
+	echoCtx.SetPath("/tenant/:tenant/product/:pinstance/license")
 	echoCtx.SetParamNames("tenant", "pinstance")
 	echoCtx.SetParamValues("customer2", "p2")
 
@@ -86,12 +86,12 @@ func TestGrantLicenseReturnsBadRequestWithoutBody(t *testing.T) {
 	SetPort(db.MappedPort)
 	e := echo.New()
 
-	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/:pinstance/grant", strings.NewReader(""))
+	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/:pinstance/license", strings.NewReader(""))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded") //Q: are there no constants for this in go?
 	rec := httptest.NewRecorder()
 
 	echoCtx := e.NewContext(req, rec)
-	echoCtx.SetPath("/tenant/:tenant/product/:pinstance/grant")
+	echoCtx.SetPath("/tenant/:tenant/product/:pinstance/license")
 	echoCtx.SetParamNames("tenant", "pinstance")
 	echoCtx.SetParamValues("customer1", "p1")
 

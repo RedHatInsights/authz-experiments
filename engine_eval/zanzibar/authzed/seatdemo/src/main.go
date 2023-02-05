@@ -20,6 +20,8 @@ func main() {
 
 	//product
 	e.GET("/tenant/:tenant/product/:pinstance/license", handler.GetLicenseInfoForProductInstance)
+	e.POST("/tenant/:tenant/product/:pinstance/license", handler.GrantLicenseIfNotFull)
+
 	// Start server
 	e.Logger.Fatal(e.Start(":3000"))
 }
