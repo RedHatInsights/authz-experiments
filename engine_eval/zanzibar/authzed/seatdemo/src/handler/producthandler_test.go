@@ -167,7 +167,7 @@ func TestGrantLicenseRevokesGrantIfMaxReached(t *testing.T) {
 	e := echo.New()
 
 	req := httptest.NewRequest(http.MethodPost, "/tenant/customer1/product/p2/license", strings.NewReader("userId=t2user3"))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded") //Q: are there no constants for this in go? //TODO: evaluate why binding in code does not return error when this header is not set...
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded") //Q: are there no constants for this in go?
 	rec := httptest.NewRecorder()
 
 	echoCtx := e.NewContext(req, rec)
