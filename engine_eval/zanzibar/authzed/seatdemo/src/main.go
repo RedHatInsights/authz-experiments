@@ -11,7 +11,7 @@ func main() {
 	e := echo.New()
 
 	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	e.Use(middleware.Recover()) //TODO: eval real necessary middlewares, this is just added as per the docs
 
 	// Routes
 	e.GET("/", handler.GetInfo)

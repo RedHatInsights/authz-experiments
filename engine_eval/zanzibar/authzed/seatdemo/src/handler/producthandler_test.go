@@ -297,8 +297,9 @@ func TestGetLicenseForbiddenWithoutRightPermission(t *testing.T) {
 }
 
 func populateEchoContext(p EchoTestParams) (echo.Context, *httptest.ResponseRecorder) {
+
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, p.uri, strings.NewReader(p.bodyContent))
+	req := httptest.NewRequest(p.methodType, p.uri, strings.NewReader(p.bodyContent))
 
 	for k, v := range p.optionalHeaders {
 		req.Header.Set(k, v)

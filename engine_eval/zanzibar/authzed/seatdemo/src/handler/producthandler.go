@@ -24,7 +24,7 @@ type GrantLicenseResponse struct {
 	Message string `json:"reason"`
 }
 
-type GrantLicenseRequest struct {
+type GrantLicensePostRequest struct {
 	UserId string `form:"userId"`
 }
 
@@ -55,7 +55,8 @@ func GetLicenseInfoForProductInstance(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "uh oh...")
 	}
 
-	//check permissions: is p1 tied to customer1? actual intent: is user allowed to access p1 licensing data? let's check manage_seats permission on tenant resource for now.
+	//check permissions: is user tied to customer1? actual intent: is user allowed to access p1 licensing data?
+	//let's check manage_seats permission on tenant resource for now.
 	if resp.Permissionship != v1.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION {
 		return echo.NewHTTPError(http.StatusForbidden, "You are not allowed to see licensing information. manage_seats is required (and too coarse grained, but for the sake of example it suffices.")
 	}
@@ -70,7 +71,7 @@ func GetLicenseInfoForProductInstance(c echo.Context) error {
 
 	currentLicenseCount, err3 := GetCurrentActiveLicenseCountForProductInstance(pInstance, client, ctx)
 	if err3 != nil {
-		return echo.NewHTTPError(http.StatusForbidden, "Internal Server error occured. Please try again later.")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Internal Server error occured. Please try again later.")
 	}
 
 	result := ProductLicense{
@@ -88,7 +89,7 @@ func GrantLicenseIfNotFull(c echo.Context) error {
 	}
 
 	//sanity check if requestbody contains userid. send 400 if empty.
-	var grReq GrantLicenseRequest
+	var grReq GrantLicensePostRequest
 	err := c.Bind(&grReq)
 
 	if err != nil || grReq.UserId == "" { //TODO: evaluate why binding in code does not return error when this is empty...
@@ -107,8 +108,9 @@ func GrantLicenseIfNotFull(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "No license found for product instance "+pInstance)
 	}
 
-	// TODO: this and the following check should be consolidated into one CheckPermissions, change model accordingly, should work, but not now..
-	//check for tenant membership of user to grant stuff for.
+	// TODO: this and the following check should be consolidated into one CheckPermissions,
+	// change model accordingly, should work, but not now..
+	// check for tenant membership of user to grant stuff for.
 	tId := c.Param("tenant")
 	s, o := createSubjectObjectTuple("user", grReq.UserId, "tenant", tId)
 

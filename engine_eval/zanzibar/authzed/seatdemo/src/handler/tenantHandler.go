@@ -63,7 +63,7 @@ func GetTenantUsers(c echo.Context) error {
 	})
 
 	var result GetUserResponses
-	for { //most likely weird and ugly, but works.
+	for {
 		resp, err := stream.Recv()
 		if err == io.EOF {
 			break
