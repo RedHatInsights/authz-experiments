@@ -144,6 +144,8 @@ func GrantLicenseIfNotFull(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusConflict, "Already active license for user "+grReq.UserId+" found.")
 	}
 
+	// TODO: discuss up- and downsides, as this could lead to race conditions/not in-sync systems i guess.
+	// ...access checks and decisions should belong inside spicedb. Perhaps use caveats instead.
 	isFull, currentCount, err5 := isLicenseFull(pInstance, c, client, ctx)
 
 	if err5 != nil {
