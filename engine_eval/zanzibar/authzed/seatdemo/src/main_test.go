@@ -12,7 +12,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -79,13 +78,12 @@ func Test_hello(t *testing.T) {
 		t.Fatalf("container not setup correctly: %s", err)
 	}
 
-	e := echo.New()
+	e := handler.GetEcho()
 	req := httptest.NewRequest(http.MethodGet, "/", strings.NewReader(""))
 	rec := httptest.NewRecorder()
-	echo_ctx := e.NewContext(req, rec)
 	handler.SetPort(db.MappedPort)
-	if assert.NoError(t, handler.GetInfo(echo_ctx)) {
-		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Contains(t, rec.Body.String(), "Connection to spiceDB successfully established")
-	}
+	e.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Contains(t, rec.Body.String(), "Connection to spiceDB successfully established")
 }

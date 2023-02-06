@@ -2,25 +2,11 @@ package handler
 
 import (
 	"context"
-	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
-	"github.com/kinbiko/jsonassert"
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
-)
 
-type EchoTestParams struct {
-	methodType      string
-	uri             string
-	path            string
-	bodyContent     string
-	paramNames      []string
-	paramValues     []string
-	optionalHeaders map[string]string
-}
+	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
+)
 
 func TestGrantLicenseReturnsBadRequestWhenNoProductInstanceLicenseFound(t *testing.T) {
 	ctx := context.Background()
@@ -29,21 +15,8 @@ func TestGrantLicenseReturnsBadRequestWhenNoProductInstanceLicenseFound(t *testi
 
 	SetPort(db.MappedPort)
 
-	p := EchoTestParams{
-		methodType:      http.MethodPost,
-		uri:             "/tenant/customer1/product/p9999/license",
-		path:            "/tenant/:tenant/product/:pinstance/license",
-		bodyContent:     "userId=user5",
-		paramNames:      []string{"tenant", "pinstance"},
-		paramValues:     []string{"customer1", "p9999"},
-		optionalHeaders: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
-	}
-
-	echoCtx, _ := populateEchoContext(p)
-
-	errResp := GrantLicenseIfNotFull(echoCtx)
-
-	assertHttpErrCodeAndMsg(t, http.StatusBadRequest, "No license found for product instance p9999", errResp)
+	resp := runRequest(post("/tenant/customer1/product/p9999/license", "userId=user5"))
+	assertHttpErrCodeAndMsg(t, http.StatusBadRequest, "No license found for product instance p9999", resp)
 }
 
 func TestGrantLicenseGrantsLicenseIfAllConditionsMet(t *testing.T) {
@@ -53,30 +26,15 @@ func TestGrantLicenseGrantsLicenseIfAllConditionsMet(t *testing.T) {
 
 	SetPort(db.MappedPort)
 
-	p := EchoTestParams{
-		methodType:      http.MethodPost,
-		uri:             "/tenant/customer1/product/p1/license",
-		path:            "/tenant/:tenant/product/:pinstance/license",
-		bodyContent:     "userId=user5",
-		paramNames:      []string{"tenant", "pinstance"},
-		paramValues:     []string{"customer1", "p1"},
-		optionalHeaders: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
-	}
+	resp := runRequest(post("/tenant/customer1/product/p1/license", "userId=user5"))
 
-	echoCtx, rec := populateEchoContext(p)
-
-	if assert.NoError(t, GrantLicenseIfNotFull(echoCtx)) {
-		assert.Equal(t, http.StatusCreated, rec.Code)
-		ja := jsonassert.New(t)
-		// find some sort of payload
-		granted := true
-		reason := "Successfully granted a license for instance p1 to user5. Remaining: 0"
-		ja.Assertf(rec.Body.String(), `
-	{
-		"granted": %t,
-		"reason": "%s"
-	}`, granted, reason)
-	}
+	granted := true
+	reason := "Successfully granted a license for instance p1 to user5. Remaining: 0"
+	assertJsonResponse(t, resp, http.StatusCreated,
+		`{
+			"granted": %t,
+			"reason": "%s"
+		}`, granted, reason)
 
 	//cleanup bc container reuse.. TODO refactor
 	client, _ := getSpiceDbApiClient(db.MappedPort)
@@ -107,20 +65,9 @@ func TestGrantLicenseReturns409ForUserWithAlreadyActivatedLicense(t *testing.T) 
 	db := getSpiceDbContainer(t, ctx)
 
 	SetPort(db.MappedPort)
-	p := EchoTestParams{
-		methodType:      http.MethodPost,
-		uri:             "/tenant/customer1/product/p1/license",
-		path:            "/tenant/:tenant/product/:pinstance/license",
-		bodyContent:     "userId=user1",
-		paramNames:      []string{"tenant", "pinstance"},
-		paramValues:     []string{"customer1", "p1"},
-		optionalHeaders: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
-	}
 
-	echoCtx, _ := populateEchoContext(p)
-	errResp := GrantLicenseIfNotFull(echoCtx)
-
-	assertHttpErrCodeAndMsg(t, http.StatusConflict, "Already active license for user user1 found.", errResp)
+	resp := runRequest(post("/tenant/customer1/product/p1/license", "userId=user1"))
+	assertHttpErrCodeAndMsg(t, http.StatusConflict, "Already active license for user user1 found.", resp)
 }
 
 func TestGrantLicenseReturns403ForUserNotMemberOfTenant(t *testing.T) {
@@ -129,21 +76,9 @@ func TestGrantLicenseReturns403ForUserNotMemberOfTenant(t *testing.T) {
 	db := getSpiceDbContainer(t, ctx)
 
 	SetPort(db.MappedPort)
-	p := EchoTestParams{
-		methodType:      http.MethodPost,
-		uri:             "/tenant/customer1/product/p1/license",
-		path:            "/tenant/:tenant/product/:pinstance/license",
-		bodyContent:     "userId=t2user3",
-		paramNames:      []string{"tenant", "pinstance"},
-		paramValues:     []string{"customer1", "p1"},
-		optionalHeaders: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
-	}
 
-	echoCtx, _ := populateEchoContext(p)
-
-	errResp := GrantLicenseIfNotFull(echoCtx)
-
-	assertHttpErrCodeAndMsg(t, http.StatusForbidden, "User t2user3 is not a member of licensed tenant customer1", errResp)
+	resp := runRequest(post("/tenant/customer1/product/p1/license", "userId=t2user3"))
+	assertHttpErrCodeAndMsg(t, http.StatusForbidden, "User t2user3 is not a member of licensed tenant customer1", resp)
 }
 
 func TestGrantLicenseRevokesGrantIfMaxReached(t *testing.T) {
@@ -152,29 +87,16 @@ func TestGrantLicenseRevokesGrantIfMaxReached(t *testing.T) {
 	db := getSpiceDbContainer(t, ctx)
 
 	SetPort(db.MappedPort)
-	p := EchoTestParams{
-		methodType:      http.MethodPost,
-		uri:             "/tenant/customer2/product/p2/license",
-		path:            "/tenant/:tenant/product/:pinstance/license",
-		bodyContent:     "userId=t2user3",
-		paramNames:      []string{"tenant", "pinstance"},
-		paramValues:     []string{"customer2", "p2"},
-		optionalHeaders: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
-	}
 
-	echoCtx, rec := populateEchoContext(p)
+	resp := runRequest(post("/tenant/customer2/product/p2/license", "userId=t2user3"))
 
-	if assert.NoError(t, GrantLicenseIfNotFull(echoCtx)) {
-		assert.Equal(t, http.StatusConflict, rec.Code)
-		ja := jsonassert.New(t)
-		granted := false
-		reason := "Maximum seats exceeded. Please extend your license."
-		ja.Assertf(rec.Body.String(), `
-	{
-		"granted": %t,
-		"reason": "%s"
-	}`, granted, reason)
-	}
+	granted := false
+	reason := "Maximum seats exceeded. Please extend your license."
+	assertJsonResponse(t, resp, http.StatusConflict,
+		`{
+			"granted": %t,
+			"reason": "%s"
+		}`, granted, reason)
 }
 
 func TestGrantLicenseReturnsBadRequestWithoutBody(t *testing.T) {
@@ -183,19 +105,9 @@ func TestGrantLicenseReturnsBadRequestWithoutBody(t *testing.T) {
 	db := getSpiceDbContainer(t, ctx)
 
 	SetPort(db.MappedPort)
-	p := EchoTestParams{
-		methodType:      http.MethodPost,
-		uri:             "/tenant/customer1/product/p1/license",
-		path:            "/tenant/:tenant/product/:pinstance/license",
-		paramNames:      []string{"tenant", "pinstance"},
-		paramValues:     []string{"customer2", "p2"},
-		optionalHeaders: map[string]string{"Content-Type": "application/x-www-form-urlencoded"},
-	}
 
-	echoCtx, _ := populateEchoContext(p)
-	errResp := GrantLicenseIfNotFull(echoCtx)
-
-	assertHttpErrCodeAndMsg(t, http.StatusBadRequest, "Bad Request. User to grant access to needed", errResp)
+	resp := runRequest(post("/tenant/customer1/product/p1/license", ""))
+	assertHttpErrCodeAndMsg(t, http.StatusBadRequest, "Bad Request. User to grant access to needed", resp)
 }
 
 /*
@@ -208,18 +120,9 @@ func TestGetLicenseReturnsBadRequestIfNoLicenseFound(t *testing.T) {
 	db := getSpiceDbContainer(t, ctx)
 
 	SetPort(db.MappedPort)
-	p := EchoTestParams{
-		methodType:  http.MethodGet,
-		uri:         "/tenant/customer2/product/p999/license?callingName=t2owner",
-		path:        "/tenant/:tenant/product/:pinstance/license",
-		paramNames:  []string{"tenant", "pinstance"},
-		paramValues: []string{"customer2", "p999"},
-	}
 
-	echoCtx, _ := populateEchoContext(p)
-	errResp := GetLicenseInfoForProductInstance(echoCtx)
-
-	assertHttpErrCodeAndMsg(t, http.StatusBadRequest, "No license found for product instance p999", errResp)
+	resp := runRequest(get("/tenant/customer2/product/p999/license?callingName=t2owner"))
+	assertHttpErrCodeAndMsg(t, http.StatusBadRequest, "No license found for product instance p999", resp)
 }
 
 func TestGetLicenseReturnsListOfLicensedUsersForTenant(t *testing.T) {
@@ -229,30 +132,17 @@ func TestGetLicenseReturnsListOfLicensedUsersForTenant(t *testing.T) {
 
 	SetPort(db.MappedPort)
 
-	p := EchoTestParams{
-		methodType:  http.MethodGet,
-		uri:         "/tenant/customer1/product/p1/license?callingName=owner1",
-		path:        "/tenant/:tenant/product/:pinstance/license",
-		paramNames:  []string{"tenant", "pinstance"},
-		paramValues: []string{"customer1", "p1"},
-	}
+	resp := runRequest(get("/tenant/customer1/product/p1/license?callingName=owner1"))
 
-	echoCtx, rec := populateEchoContext(p)
-
-	if assert.NoError(t, GetLicenseInfoForProductInstance(echoCtx)) {
-		assert.Equal(t, http.StatusOK, rec.Code)
-		ja := jsonassert.New(t)
-		// find some sort of payload
-		name := "p1"
-		active := 4 //relations for owner1, user1, user2 and user3
-		max := 5
-		ja.Assertf(rec.Body.String(), `
-	{
-		"name": "%s",
-		"active_licenses": %d,
-		"max_seats": %d
-	}`, name, active, max)
-	}
+	name := "p1"
+	active := 4 //relations for owner1, user1, user2 and user3
+	max := 5
+	assertJsonResponse(t, resp, http.StatusOK,
+		`{
+			"name": "%s",
+			"active_licenses": %d,
+			"max_seats": %d
+		}`, name, active, max)
 }
 
 func TestGetLicenseForbiddenForOtherTenant(t *testing.T) {
@@ -261,19 +151,9 @@ func TestGetLicenseForbiddenForOtherTenant(t *testing.T) {
 	db := getSpiceDbContainer(t, ctx)
 
 	SetPort(db.MappedPort)
-	p := EchoTestParams{
-		methodType:  http.MethodGet,
-		uri:         "/tenant/customer2/product/p2/license?callingName=owner1",
-		path:        "/tenant/:tenant/product/:pinstance/license",
-		paramNames:  []string{"tenant", "pinstance"},
-		paramValues: []string{"customer2", "p2"},
-	}
 
-	echoCtx, _ := populateEchoContext(p)
-
-	errResp := GetLicenseInfoForProductInstance(echoCtx)
-
-	assertHttpErrCodeAndMsg(t, http.StatusForbidden, "You are not allowed to see licensing information", errResp)
+	resp := runRequest(get("/tenant/customer2/product/p2/license?callingName=owner1"))
+	assertHttpErrCodeAndMsg(t, http.StatusForbidden, "You are not allowed to see licensing information", resp)
 }
 
 func TestGetLicenseForbiddenWithoutRightPermission(t *testing.T) {
@@ -282,46 +162,9 @@ func TestGetLicenseForbiddenWithoutRightPermission(t *testing.T) {
 	db := getSpiceDbContainer(t, ctx)
 
 	SetPort(db.MappedPort)
-	p := EchoTestParams{
-		methodType:  http.MethodGet,
-		uri:         "/tenant/customer2/product/p2/license?callingName=t2user2",
-		path:        "/tenant/:tenant/product/:pinstance/license",
-		paramNames:  []string{"tenant", "pinstance"},
-		paramValues: []string{"customer2", "p2"},
-	}
 
-	echoCtx, _ := populateEchoContext(p)
-
-	errResp := GetLicenseInfoForProductInstance(echoCtx)
-	assertHttpErrCodeAndMsg(t, http.StatusForbidden, "You are not allowed to see licensing information", errResp)
-}
-
-func populateEchoContext(p EchoTestParams) (echo.Context, *httptest.ResponseRecorder) {
-
-	e := echo.New()
-	req := httptest.NewRequest(p.methodType, p.uri, strings.NewReader(p.bodyContent))
-
-	for k, v := range p.optionalHeaders {
-		req.Header.Set(k, v)
-	}
-
-	rec := httptest.NewRecorder()
-
-	echoCtx := e.NewContext(req, rec)
-	echoCtx.SetPath(p.path)
-	echoCtx.SetParamNames(p.paramNames...)
-	echoCtx.SetParamValues(p.paramValues...) //p3 does not exist
-	return echoCtx, rec
-}
-
-func assertHttpErrCodeAndMsg(t *testing.T, statusCode int, message string, err2 error) {
-	if assert.NotNil(t, err2) {
-		he, ok := err2.(*echo.HTTPError)
-		if ok {
-			assert.Equal(t, statusCode, he.Code)
-			assert.Contains(t, he.Message, message)
-		}
-	}
+	resp := runRequest(get("/tenant/customer2/product/p2/license?callingName=t2user2"))
+	assertHttpErrCodeAndMsg(t, http.StatusForbidden, "You are not allowed to see licensing information", resp)
 }
 
 func getSpiceDbContainer(t *testing.T, ctx context.Context) *spicedbContainer {
