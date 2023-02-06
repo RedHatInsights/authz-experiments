@@ -3,17 +3,14 @@ package handler
 import (
 	"context"
 	"fmt"
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
 	"net/http"
-	"net/http/httptest"
 	"path"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
+
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 func TestHelloHandler(t *testing.T) {
@@ -24,15 +21,9 @@ func TestHelloHandler(t *testing.T) {
 	}
 
 	SetPort(db.MappedPort)
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", strings.NewReader(""))
-	rec := httptest.NewRecorder()
-	echo_ctx := e.NewContext(req, rec)
 
-	if assert.NoError(t, GetInfo(echo_ctx)) {
-		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Contains(t, rec.Body.String(), "Connection to spiceDB successfully established")
-	}
+	resp := runRequest(get("/"))
+	assertHttpErrCodeAndMsg(t, http.StatusOK, "Connection to spiceDB successfully established", resp)
 }
 
 type spicedbContainer struct { //TODO: move out, instantiate only once etc

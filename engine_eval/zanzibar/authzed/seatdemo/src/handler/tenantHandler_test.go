@@ -2,11 +2,10 @@ package handler
 
 import (
 	"context"
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
 	"net/http"
-	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetTenantUserAccessReturnsListOfTenantUsers(t *testing.T) {
@@ -18,22 +17,11 @@ func TestGetTenantUserAccessReturnsListOfTenantUsers(t *testing.T) {
 	}
 
 	SetPort(db.MappedPort)
-	e := echo.New()
 
-	req := httptest.NewRequest(http.MethodGet, "/tenant/customer1/user?callingName=owner1", nil)
-	rec := httptest.NewRecorder()
+	resp := runRequest(get("/tenant/customer1/user?callingName=owner1"))
 
-	echoCtx := e.NewContext(req, rec)
-	echoCtx.SetPath("/tenant/:tenant/user")
-	echoCtx.SetParamNames("tenant")
-	echoCtx.SetParamValues("customer1")
-
-	if assert.NoError(t, GetTenantUsers(echoCtx)) {
-		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Contains(t, rec.Body.String(), "owner1")
-		assert.Contains(t, rec.Body.String(), "user1")
-		assert.Contains(t, rec.Body.String(), "user4")
-	}
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assertJsonResponse(t, resp, http.StatusOK, `["<<UNORDERED>>",{"userid":"user1"},{"userid":"user2"},{"userid":"user3"},{"userid":"user4"},{"userid":"user5"},{"userid":"owner1"}]`)
 }
 
 func TestOwnerOfOneTenantCannotAccessOtherTenantUserList(t *testing.T) {
@@ -45,25 +33,9 @@ func TestOwnerOfOneTenantCannotAccessOtherTenantUserList(t *testing.T) {
 	}
 
 	SetPort(db.MappedPort)
-	e := echo.New()
 
-	req := httptest.NewRequest(http.MethodGet, "/tenant/customer1/user?callingName=t2owner1", nil)
-	rec := httptest.NewRecorder()
-
-	echoCtx := e.NewContext(req, rec)
-	echoCtx.SetPath("/tenant/:tenant/user")
-	echoCtx.SetParamNames("tenant")
-	echoCtx.SetParamValues("customer1")
-
-	//weird weird way of testing for errors in echo
-	err2 := GetTenantUsers(echoCtx)
-	if assert.NotNil(t, err2) {
-		he, ok := err2.(*echo.HTTPError)
-		if ok {
-			assert.Equal(t, http.StatusForbidden, he.Code)
-			assert.Contains(t, he.Message, "nothing to see here")
-		}
-	}
+	resp := runRequest(get("/tenant/customer1/user?callingName=t2owner1"))
+	assertHttpErrCodeAndMsg(t, http.StatusForbidden, "nothing to see here", resp)
 }
 
 func TestGetUsersNotAvailableForNormalUsers(t *testing.T) {
@@ -75,23 +47,7 @@ func TestGetUsersNotAvailableForNormalUsers(t *testing.T) {
 	}
 
 	SetPort(db.MappedPort)
-	e := echo.New()
 
-	req := httptest.NewRequest(http.MethodGet, "/tenant/customer1/user?callingName=user1", nil)
-	rec := httptest.NewRecorder()
-
-	echoCtx := e.NewContext(req, rec)
-	echoCtx.SetPath("/tenant/:tenant/user")
-	echoCtx.SetParamNames("tenant")
-	echoCtx.SetParamValues("customer1")
-
-	//weird weird way of testing for errors in echo
-	err2 := GetTenantUsers(echoCtx)
-	if assert.NotNil(t, err2) {
-		he, ok := err2.(*echo.HTTPError)
-		if ok {
-			assert.Equal(t, http.StatusForbidden, he.Code)
-			assert.Contains(t, he.Message, "nothing to see here")
-		}
-	}
+	resp := runRequest(get("/tenant/customer1/user?callingName=user1"))
+	assertHttpErrCodeAndMsg(t, http.StatusForbidden, "nothing to see here", resp)
 }
