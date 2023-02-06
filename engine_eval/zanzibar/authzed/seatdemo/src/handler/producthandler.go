@@ -41,22 +41,14 @@ func GetLicenseInfoForProductInstance(c echo.Context) error {
 	}
 
 	callingName := c.QueryParam("callingName")
-
-	subject := &v1.SubjectReference{Object: &v1.ObjectReference{
-		ObjectType: "user",
-		ObjectId:   callingName,
-	}}
-
 	tId := c.Param("tenant")
-	t1 := &v1.ObjectReference{
-		ObjectType: "tenant",
-		ObjectId:   tId,
-	}
+
+	s, o := createSubjectObjectTuple("user", callingName, "tenant", tId)
 
 	resp, err2 := client.CheckPermission(ctx, &v1.CheckPermissionRequest{
-		Resource:   t1,
+		Resource:   o,
 		Permission: "manage_seats",
-		Subject:    subject,
+		Subject:    s,
 	})
 
 	if err2 != nil {
@@ -117,21 +109,13 @@ func GrantLicenseIfNotFull(c echo.Context) error {
 
 	// TODO: this and the following check should be consolidated into one CheckPermissions, change model accordingly, should work, but not now..
 	//check for tenant membership of user to grant stuff for.
-	subj := &v1.SubjectReference{Object: &v1.ObjectReference{
-		ObjectType: "user",
-		ObjectId:   grReq.UserId,
-	}}
-
 	tId := c.Param("tenant")
-	tenant := &v1.ObjectReference{
-		ObjectType: "tenant",
-		ObjectId:   tId,
-	}
+	s, o := createSubjectObjectTuple("user", grReq.UserId, "tenant", tId)
 
 	resp, err3 := client.CheckPermission(ctx, &v1.CheckPermissionRequest{
-		Resource:   tenant,
+		Resource:   o,
 		Permission: "membership",
-		Subject:    subj,
+		Subject:    s,
 	})
 
 	if err3 != nil {
@@ -143,20 +127,12 @@ func GrantLicenseIfNotFull(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusForbidden, "User "+grReq.UserId+" is not a member of licensed tenant "+tId)
 	}
 
-	subject := &v1.SubjectReference{Object: &v1.ObjectReference{
-		ObjectType: "user",
-		ObjectId:   grReq.UserId,
-	}}
-
-	t2 := &v1.ObjectReference{
-		ObjectType: "user",
-		ObjectId:   grReq.UserId,
-	}
+	s2, o2 := createSubjectObjectTuple("user", grReq.UserId, "user", grReq.UserId)
 
 	r, err4 := client.CheckPermission(ctx, &v1.CheckPermissionRequest{
-		Resource:   t2,
+		Resource:   o2,
 		Permission: "is_not_activated_wsdm_user",
-		Subject:    subject,
+		Subject:    s2,
 	})
 
 	if err4 != nil {
@@ -279,4 +255,17 @@ func GetCurrentActiveLicenseCountForProductInstance(pInstance string, client *au
 		}
 	}
 	return currentLicenseCount, nil
+}
+
+func createSubjectObjectTuple(subjectType string, subjectValue string, objectType string, objectValue string) (*v1.SubjectReference, *v1.ObjectReference) {
+	subject := &v1.SubjectReference{Object: &v1.ObjectReference{
+		ObjectType: subjectType,
+		ObjectId:   subjectValue,
+	}}
+
+	t1 := &v1.ObjectReference{
+		ObjectType: objectType,
+		ObjectId:   objectValue,
+	}
+	return subject, t1
 }
