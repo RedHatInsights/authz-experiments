@@ -86,7 +86,6 @@ func setupSpiceDb(ctx context.Context, t *testing.T) (*spicedbContainer, error) 
 	}
 
 	uri := fmt.Sprintf("http://%s:%s", ip, mappedPort.Port())
-	t.Logf(uri)
 
 	return &spicedbContainer{Container: container, URI: uri, MappedPort: mappedPort.Port()}, nil
 }
