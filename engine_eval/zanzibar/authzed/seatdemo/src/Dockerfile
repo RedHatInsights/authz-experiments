@@ -1,7 +1,8 @@
 FROM --platform=linux/amd64 registry.access.redhat.com/ubi9/ubi-minimal:9.1 AS builder
-
+USER root
 RUN microdnf install -y tar gzip make which
 ENV ARCHITECTURE=x64
+
 # install go
 RUN curl -O -J https://dl.google.com/go/go1.19.6.linux-amd64.tar.gz
 RUN tar -C /usr/local -xzf go1.19.6.linux-amd64.tar.gz
@@ -16,13 +17,15 @@ RUN make binary
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.1
 
-COPY --from=builder /opt/seatdemo /opt/seatdemo
+COPY --from=builder /opt/seatdemo /opt/seatdemo/seatdemo
 
 EXPOSE 3000
+
+USER 1001
 
 ENTRYPOINT ["/opt/seatdemo/seatdemo"]
 
 LABEL name="seatdemo" \
-      version="0.0.1" \
+      version="$VERSION" \
       summary="test seatdemo service" \
       description="seatdemotestbuild"
