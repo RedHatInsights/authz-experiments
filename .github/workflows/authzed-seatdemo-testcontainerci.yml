@@ -35,11 +35,6 @@ jobs:
         run: go test ./...
   push-to-registry:
     runs-on: ubuntu-latest
-    env:
-      working-directory: ./engine_eval/zanzibar/authzed/seatdemo/src
-    defaults:
-      run:
-        working-directory: ${{ env.working-directory }}
     steps:
       -
         name: Set up QEMU
@@ -58,6 +53,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v4
         with:
+          context: "{{defaultContext}}:engine_eval/zanzibar/authzed/seatdemo/src"
           platforms: linux/amd64,linux/arm64
           push: true
           tags: dguhr/test:latest
