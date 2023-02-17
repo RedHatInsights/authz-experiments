@@ -16,7 +16,7 @@ RUN make binary
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.1
 
-COPY --from=builder /opt/seatdemo --chown=1001:0 /opt/seatdemo/
+COPY --from=builder /opt/seatdemo/ /opt/seatdemo/
 
 EXPOSE 3000
 
