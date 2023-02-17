@@ -47,6 +47,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: quay.io
+          repository: ${{ secrets.REGISTRY_NAMESPACE }}/${{ env.image_name }}
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
       -
@@ -56,4 +57,4 @@ jobs:
           context: "{{defaultContext}}:engine_eval/zanzibar/authzed/seatdemo/src"
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: dguhr/test:latest
+          tags: quay.io/dguhr/test:latest
