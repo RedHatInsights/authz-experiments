@@ -4,7 +4,6 @@ import (
 	"seatdemo/handler"
 )
 
-// möp
 func main() {
 	// Echo instance
 	e := handler.GetEcho()
