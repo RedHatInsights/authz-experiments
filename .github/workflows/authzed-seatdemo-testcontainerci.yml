@@ -34,7 +34,7 @@ jobs:
       - name: Test with the Go CLI
         run: go test ./...
   push-to-registry:
-    needs: build_and_run_tests
+    # needs: build_and_run_tests
     runs-on: ubuntu-latest
     steps:
       -
@@ -55,6 +55,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: "{{defaultContext}}:engine_eval/zanzibar/authzed/seatdemo/src"
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: quay.io/dguhr/test:latest

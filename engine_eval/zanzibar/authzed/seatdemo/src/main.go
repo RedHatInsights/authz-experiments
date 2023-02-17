@@ -4,6 +4,7 @@ import (
 	"seatdemo/handler"
 )
 
+// foo
 func main() {
 	// Echo instance
 	e := handler.GetEcho()
