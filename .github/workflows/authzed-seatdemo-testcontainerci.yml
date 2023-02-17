@@ -34,6 +34,7 @@ jobs:
       - name: Test with the Go CLI
         run: go test ./...
   push-to-registry:
+    needs: build_and_run_tests
     runs-on: ubuntu-latest
     steps:
       -
