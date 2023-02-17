@@ -1,10 +1,10 @@
-FROM --platform=linux/amd64 registry.access.redhat.com/ubi9/ubi-minimal:9.1 AS builder
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.1 AS builder
+ARG TARGETARCH
 USER root
 RUN microdnf install -y tar gzip make which
 
-# install go - TODO: parametrize for multiarch
-RUN curl -O -J https://dl.google.com/go/go1.19.6.linux-amd64.tar.gz
-RUN tar -C /usr/local -xzf go1.19.6.linux-amd64.tar.gz
+RUN curl -O -J  https://dl.google.com/go/go1.19.6.linux-${TARGETARCH}.tar.gz
+RUN tar -C /usr/local -xzf go1.19.6.linux-${TARGETARCH}.tar.gz
 RUN ln -s /usr/local/go/bin/go /usr/local/bin/go
 
 WORKDIR /opt/seatdemo
