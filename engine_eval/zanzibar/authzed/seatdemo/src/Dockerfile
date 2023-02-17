@@ -1,4 +1,5 @@
 FROM --platform=linux/amd64 registry.access.redhat.com/ubi9/ubi-minimal:9.1 AS builder
+USER root
 RUN microdnf install -y tar gzip make which
 
 # install go
@@ -15,9 +16,11 @@ RUN make binary
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.1
 
-COPY --from=builder /opt/seatdemo /opt/seatdemo/seatdemo
+COPY --from=builder /opt/seatdemo /opt/seatdemo/
 
 EXPOSE 3000
+
+USER 1001
 
 ENTRYPOINT ["/opt/seatdemo/seatdemo"]
 
