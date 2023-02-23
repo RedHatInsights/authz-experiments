@@ -37,8 +37,9 @@ jobs:
     #needs: build_and_run_tests
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Set short git commit SHA
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set short git commit SHA
         id: vars
         run: |
             calculatedSha=$(git rev-parse --short=7 ${{ github.sha }})
