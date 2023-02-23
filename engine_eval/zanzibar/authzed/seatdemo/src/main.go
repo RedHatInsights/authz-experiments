@@ -4,7 +4,6 @@ import (
 	"seatdemo/handler"
 )
 
-// test tagging 2
 func main() {
 	// Echo instance
 	e := handler.GetEcho()
