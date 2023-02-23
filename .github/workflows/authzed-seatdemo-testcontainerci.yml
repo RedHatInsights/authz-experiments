@@ -34,11 +34,19 @@ jobs:
       - name: Test with the Go CLI
         run: go test ./...
   push-to-registry:
-    needs: build_and_run_tests
+    #needs: build_and_run_tests
     runs-on: ubuntu-latest
     steps:
       -
-        name: Set up QEMU
+        name: Set short git commit SHA
+        id: vars
+        run: |
+            calculatedSha=$(git rev-parse --short=7 ${{ github.sha }})
+            echo "::set-output name=short_sha::$calculatedSha"
+
+      - name: Confirm git commit SHA output
+        run: echo ${{ steps.vars.outputs.short_sha }}
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       -
         name: Set up Docker Buildx
@@ -57,4 +65,8 @@ jobs:
           context: "{{defaultContext}}:engine_eval/zanzibar/authzed/seatdemo/src"
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: quay.io/dguhr/test:latest
+          tags: |
+            quay.io/dguhr/test:latest,
+            quay.io/dguhr/test:${{ steps.vars.outputs.short_sha }},
+            quay.io/dguhr/test:${{ github.run_id }}-${{ github.run_attempt	}}
+            quay.io/dguhr/test:${{ steps.vars.outputs.short_sha }}-${{ github.run_id }}-${{ github.run_attempt	}}
